@@ -1,0 +1,18 @@
+[project]
+name = "coursework-checker"
+version = "0.1.0"
+description = "AI CourseWork Checker — Telegram bot for automated coursework (.docx) review"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

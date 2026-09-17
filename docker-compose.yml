@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coursework
+      POSTGRES_PASSWORD: coursework
+      POSTGRES_DB: coursework_checker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coursework -d coursework_checker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  bot:
+    build: .
+    restart: unless-stopped
+    command: ["python", "-m", "app.main"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://coursework:coursework@postgres:5432/coursework_checker
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./rules:/srv/app/rules
+      - ./prompts:/srv/app/prompts
+      - storage_data:/srv/app/data/storage
+      - reports_data:/srv/app/data/reports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    restart: unless-stopped
+    command: ["arq", "app.worker.WorkerSettings"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://coursework:coursework@postgres:5432/coursework_checker
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./rules:/srv/app/rules
+      - ./prompts:/srv/app/prompts
+      - storage_data:/srv/app/data/storage
+      - reports_data:/srv/app/data/reports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  migrate:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://coursework:coursework@postgres:5432/coursework_checker
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  storage_data:
+  reports_data:

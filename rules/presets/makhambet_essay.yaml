@@ -1,0 +1,67 @@
+# RulePreset — Makhambet University, Реферат
+#
+# Самые мягкие требования из всех пресетов: короче по объёму, меньше
+# источников, без деления на главы. Оформление (шрифт/поля/интервал)
+# остаётся единым по вузу.
+
+id: makhambet_essay
+name: "Makhambet University — Реферат"
+institution: "Makhambet University"
+work_type: essay
+description: "Требования к оформлению реферата (СРС) Makhambet University."
+
+page:
+  size: A4
+  orientation: portrait
+
+margins:
+  top_mm: 20
+  bottom_mm: 20
+  left_mm: 30
+  right_mm: 10
+  tolerance_mm: 1.5
+
+font:
+  name: "Times New Roman"
+  size_pt: 14
+  tolerance_pt: 0.5
+  allow_headings_bold: true
+  max_foreign_font_share_pct: 5.0
+
+paragraph:
+  alignment: justify
+  first_line_indent_cm: 1.25
+  indent_tolerance_cm: 0.15
+  line_spacing: 1.5
+  line_spacing_tolerance: 0.1
+  max_left_indent_cm: 0.5
+  max_right_indent_cm: 0.5
+
+headings:
+  require_numbering: false
+  max_level: 2
+  require_page_break_before_top_level: false
+
+structure:
+  required_sections:
+    - introduction
+    - main_body
+    - conclusion
+    - references
+  optional_sections: []
+  min_words_introduction: 100
+  min_words_conclusion: 80
+
+references:
+  min_sources: 5
+  require_in_text_citations: false
+  max_allowed_duplicate_sources: 0
+
+scoring:
+  formatting: 20
+  structure: 20
+  language: 20
+  style: 15
+  content: 25
+
+is_active: true

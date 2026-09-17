@@ -1,0 +1,36 @@
+aiogram==3.13.1
+fastapi==0.115.0
+# NOTE: plain uvicorn, NOT uvicorn[standard]. The [standard] extra pulls in
+# uvloop, and arq (see below) auto-installs uvloop as the global asyncio
+# event loop policy the moment it's importable. Newer uvloop releases
+# (>=0.20) dropped the implicit "create a loop if none exists" fallback in
+# get_event_loop(), which is exactly what arq's own Worker.__init__ still
+# relies on — the combination crashes the worker on startup with
+# "RuntimeError: There is no current event loop in thread 'MainThread'".
+# The FastAPI stub in this project doesn't need uvloop's performance boost,
+# so the simplest fix is to just not install it.
+uvicorn==0.30.6
+pydantic==2.9.2
+pydantic-settings==2.5.2
+SQLAlchemy==2.0.35
+alembic==1.13.3
+asyncpg==0.29.0
+aiosqlite==0.20.0
+python-docx==1.1.2
+lxml==5.3.0
+reportlab==4.2.5
+arq==0.26.1
+redis==5.0.8
+httpx==0.27.2
+openai==1.51.0
+PyYAML==6.0.2
+structlog==24.4.0
+python-dotenv==1.0.1
+tenacity==9.0.0
+Pillow==10.4.0
+
+# dev / tests
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-mock==3.14.0
+faker==28.4.1
