@@ -10,7 +10,6 @@ data
 venv
 tests
 demo
-AUDIT.md
 
 .tools/
 tmp/

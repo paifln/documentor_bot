@@ -110,5 +110,4 @@ The following supporting documents are currently written in Russian:
 
 - [Architecture and operations](docs/ARCHITECTURE.md)
 - [Review of WKU requirements](docs/WKU_REVIEW.md)
-- [Project defense speech](docs/DEFENSE_SPEECH.md)
-- [Demonstration guide](DEFENSE.md)
+- [Project defense speech and demonstration guide](docs/DEFENSE_SPEECH.md)
