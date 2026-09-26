@@ -10,8 +10,7 @@ We look for a real TTF font that covers both ranges, in order of
 preference: an explicit override, common Linux paths (what the Docker
 image ships, see Dockerfile), and common Windows paths (for local dev on
 Windows, where Arial/Times New Roman already have full Kazakh coverage).
-If nothing is found we fall back to Helvetica and log a loud warning —
-better a report with the wrong font than a crash.
+If no suitable font exists, fail explicitly rather than deliver unreadable text.
 """
 
 from __future__ import annotations
@@ -79,6 +78,11 @@ def ensure_unicode_font_registered() -> str:
                 # Reuse the regular face under the "-Bold" name so styles
                 # referencing it don't crash; text just won't look bold.
                 pdfmetrics.registerFont(TTFont(f"{FONT_FAMILY}-Bold", regular_path))
+            required = "ӘәҒғҚқҢңӨөҰұҮүҺһІіЁё" + "РусскийҚазақEnglish"
+            for face in (FONT_FAMILY, f"{FONT_FAMILY}-Bold"):
+                glyphs = pdfmetrics.getFont(face).face.charToGlyph
+                if any(ord(char) not in glyphs for char in required):
+                    raise ValueError("Font lacks required Russian/Kazakh glyphs")
             pdfmetrics.registerFontFamily(
                 FONT_FAMILY,
                 normal=FONT_FAMILY,
@@ -98,11 +102,8 @@ def ensure_unicode_font_registered() -> str:
         "pdf_no_unicode_font_found",
         detail=(
             "No Cyrillic/Kazakh-capable TTF font found on this system. "
-            "PDF reports will fall back to Helvetica and Cyrillic/Kazakh "
-            "text will render as blank boxes. Install fonts-dejavu-core "
+            "PDF report generation requires a Unicode font. Install fonts-dejavu-core "
             "(Linux) or set PDF_FONT_PATH to a valid .ttf file."
         ),
     )
-    _registered_family = "Helvetica"
-    _registered = True  # don't retry every call — the warning is enough
-    return "Helvetica"
+    raise RuntimeError("Install a Unicode TTF font or configure PDF_FONT_PATH")

@@ -10,6 +10,8 @@ from app.database.models.user import User
 from app.database.repositories.check_repository import CheckRepository
 from app.i18n import t
 from app.services.retention import delete_user_history
+from app.common.models import CheckResult, CheckSummary
+from app.reports.presentation import score_over_100
 
 router = Router(name="settings")
 
@@ -29,8 +31,21 @@ async def show_history(callback: CallbackQuery, session: AsyncSession, db_user: 
     for c in checks:
         date_str = c.created_at.strftime("%d.%m.%Y")
         filename = c.document.filename if c.document else "—"
-        maximum = (c.result_snapshot or {}).get("max_score", 100)
-        score_str = f"{c.score:.0f}/{maximum:.0f}" if c.score is not None else c.status.value
+        if c.score is not None:
+            result = (
+                CheckResult.model_validate(c.result_snapshot)
+                if c.result_snapshot
+                else CheckResult(
+                    score=c.score,
+                    summary=CheckSummary(),
+                    ai_analysis_available=c.ai_analysis_available,
+                )
+            )
+            score_str = f"{score_over_100(result):g}/100"
+            if result.provisional or not result.ai_analysis_available:
+                score_str += " · " + t("score.provisional_short", lang)
+        else:
+            score_str = t(f"status.{c.status.value}", lang)
         lines.append(f"{date_str}\n{filename}\n{score_str}\n")
 
     await callback.message.answer("\n".join(lines))

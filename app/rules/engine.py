@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
+from app.common.enums import Severity
 from app.common.models import Finding
 from app.document import structure as structure_module
 from app.document.parser import ParsedDocument
@@ -81,6 +82,10 @@ class RuleEngine:
             preset,
             lang,
         )
+
+        for finding in findings:
+            if finding.rule_id in preset.advisory_rules and finding.severity != Severity.PASS:
+                finding.severity = Severity.INFO
 
         return RuleEngineResult(
             findings=findings,

@@ -295,7 +295,7 @@ async def test_real_queue_runs_worker_and_replay_uses_snapshot(
             assert check.status == CheckStatus.COMPLETED
             assert check.delivery_status == "sent"
             assert check.result_snapshot["ai_analysis_available"] is False
-            assert check.result_snapshot["max_score"] == 50
+            assert check.result_snapshot["max_score"] == 100
         assert not path.exists()
         assert (settings.reports_dir / f"report_{check_id}.pdf").exists()
         count = len(sent)

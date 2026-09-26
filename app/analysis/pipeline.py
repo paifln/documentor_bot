@@ -27,6 +27,7 @@ from pathlib import Path
 
 from app.ai.analyzer import AIAnalyzer, PromptLibrary
 from app.ai.provider import build_llm_provider
+from app.ai.result import AIAnalysisResult
 from app.analysis.aggregator import aggregate
 from app.common.exceptions import TooManyPagesError
 from app.common.models import CheckResult
@@ -89,28 +90,34 @@ class AnalysisPipeline:
         )
 
         await progress("ai")
-        ai_findings: list = []
-        ai_available = True
+        ai_result = AIAnalysisResult(failure_reasons=["provider"])
         try:
-            ai_findings, ai_available = await self.ai_analyzer.analyze(
+            ai_result = await self.ai_analyzer.analyze_document(
                 sections_text, topic=topic, lang=lang
             )
-            logger.info("ai_analysis_completed", finding_count=len(ai_findings), ok=ai_available)
+            logger.info(
+                "ai_analysis_completed",
+                finding_count=len(ai_result.findings),
+                ok=ai_result.complete,
+                coverage=ai_result.category_coverage,
+                failure_reasons=ai_result.failure_reasons,
+            )
         except Exception as exc:  # noqa: BLE001
             logger.error("ai_analysis_failed", error_type=type(exc).__name__)
-            ai_available = False
 
         await progress("report")
         elapsed = round(time.monotonic() - started, 2)
         result = aggregate(
             rule_findings=rule_result.findings,
-            ai_findings=ai_findings,
+            ai_findings=ai_result.findings,
             preset=preset,
             sections_found=rule_result.sections_found,
-            ai_available=ai_available,
+            ai_available=ai_result.complete,
+            ai_category_coverage=ai_result.category_coverage,
             processing_time_seconds=elapsed,
         )
         logger.info("check_completed", score=result.score, elapsed_seconds=elapsed)
-        result.ai_coverage = getattr(self.ai_analyzer, "coverage", 0.0)
-        result.ai_tokens_used = getattr(self.ai_analyzer, "tokens_used", 0)
+        result.ai_coverage = ai_result.coverage
+        result.ai_tokens_used = ai_result.tokens_used
+        result.ai_failure_reasons = ai_result.failure_reasons
         return result

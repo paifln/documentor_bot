@@ -814,6 +814,72 @@ MESSAGES.update(
 )
 
 
+MESSAGES.update({
+    "section.content_table": {"ru": "Содержание", "kk": "Мазмұны", "en": "Table of contents"},
+    "ai.reason.budget": {"ru": "Достигнут лимит объёма проверки текста.", "kk": "Мәтінді тексеру көлемінің шегіне жетті.", "en": "The text review budget was reached."},
+    "ai.reason.timeout": {"ru": "Сервис не успел завершить проверку текста.", "kk": "Мәтінді тексеру уақытында аяқталмады.", "en": "Text review reached its time limit."},
+    "ai.reason.provider": {"ru": "Часть запросов к сервису проверки текста не выполнена.", "kk": "Мәтінді тексеру қызметіне кейбір сұраулар орындалмады.", "en": "Some text review requests failed."},
+    "ai.reason.invalid_response": {"ru": "Часть ответов сервиса не прошла проверку качества.", "kk": "Қызметтің кейбір жауаптары сапа тексеруінен өтпеді.", "en": "Some service responses failed validation."},
+    "ai.reason.disabled": {"ru": "Проверка текста отключена в настройках сервиса.", "kk": "Қызмет баптауларында мәтінді тексеру өшірілген.", "en": "Text review is disabled in service settings."},
+    "ai.reason.empty_text": {"ru": "Не найден текст для языкового анализа.", "kk": "Тілдік талдауға мәтін табылмады.", "en": "No text was available for language review."},
+    "pdf.diagnostic": {
+        "ru": "Диагностический балл по проверенной части. Это не оценка преподавателя.",
+        "kk": "Тексерілген бөлік бойынша диагностикалық балл. Бұл оқытушының бағасы емес.",
+        "en": "Diagnostic score for the evaluated portion. This is not an academic grade.",
+    },
+    "pdf.unverified": {
+        "ru": "Профиль предварительный: соответствие действующей методичке кафедры не подтверждено.",
+        "kk": "Профиль алдын ала берілген: кафедраның қолданыстағы нұсқаулығына сәйкестігі расталмаған.",
+        "en": "Provisional preset: compliance with current department guidance is unverified.",
+    },
+    "pdf.method": {
+        "ru": "Расчёт: {version}. Одно нарушение учитывается один раз; повторы не суммируются. Непроверенные категории исключены из максимума. Сумма штрафов ограничена баллами категории.",
+        "kk": "Есептеу: {version}. Бір бұзушылық бір рет есептеледі. Тексерілмеген санаттар максимумға кірмейді. Шегерім санат балымен шектеледі.",
+        "en": "Method: {version}. Each criterion is charged once. Unevaluated categories are excluded from the maximum. Deductions are capped at the category maximum.",
+    },
+    "pdf.deductions": {
+        "ru": "Расшифровка снижения баллов",
+        "kk": "Балл шегерімдерінің түсіндірмесі",
+        "en": "Score deductions",
+    },
+    "pdf.symbols": {
+        "ru": "Символы вне шрифта обозначены кодом [U+XXXX].",
+        "kk": "Қаріпте жоқ таңбалар [U+XXXX] кодымен белгіленген.",
+        "en": "Characters unavailable in the font are shown as [U+XXXX].",
+    },
+})
+
+
+MESSAGES.update({
+    "location.paragraph": {"ru": "Абзац {n}", "kk": "{n}-абзац", "en": "Paragraph {n}"},
+    "score.provisional_short": {"ru": "предварительно", "kk": "алдын ала", "en": "provisional"},
+    "status.pending": {"ru": "Ожидает проверки", "kk": "Тексеруді күтуде", "en": "Queued"},
+    "status.running": {"ru": "Проверяется", "kk": "Тексерілуде", "en": "In progress"},
+    "status.failed": {"ru": "Проверка не завершена", "kk": "Тексеру аяқталмады", "en": "Check failed"},
+    "status.completed": {"ru": "Проверка завершена", "kk": "Тексеру аяқталды", "en": "Completed"},
+    "location.section": {"ru": "Раздел {n}", "kk": "{n}-бөлім", "en": "Section {n}"},
+    "location.fragment": {"ru": "{section}, фрагмент {n}", "kk": "{section}, {n}-үзінді", "en": "{section}, excerpt {n}"},
+    "ai.topic_unspecified": {"ru": "Не указана", "kk": "Көрсетілмеген", "en": "Not specified"},
+    "score.coverage": {"ru": "проверено {pct}% текста", "kk": "мәтіннің {pct}% тексерілді", "en": "{pct}% of text reviewed"},
+    "score.provisional": {
+        "ru": "Предварительный результат из 100: проверка выполнена не полностью. Балл рассчитан по доступным категориям; после полной проверки он может измениться.",
+        "kk": "100 балдық алдын ала нәтиже: тексеру толық аяқталмаған. Балл тексерілген санаттар бойынша есептелді; толық тексеруден кейін өзгеруі мүмкін.",
+        "en": "Provisional result out of 100: review is incomplete. The score uses available categories and may change after a full review.",
+    },
+    "score.complete": {"ru": "Все пять категорий проверены. Максимум — 100 баллов.", "kk": "Бес санаттың барлығы тексерілді. Ең жоғары балл — 100.", "en": "All five categories reviewed. Maximum: 100 points."},
+    "severity.critical": {"ru": "Критично", "kk": "Маңызды", "en": "Critical"},
+    "severity.error": {"ru": "Ошибка", "kk": "Қате", "en": "Error"},
+    "severity.warning": {"ru": "Замечание", "kk": "Ескерту", "en": "Warning"},
+    "severity.info": {"ru": "Рекомендация", "kk": "Ұсыныс", "en": "Advice"},
+    "severity.pass": {"ru": "Соответствует", "kk": "Сәйкес", "en": "Passed"},
+    "pdf.method": {
+        "ru": "Повтор одного нарушения не увеличивает штраф. Удержания ограничены весом категории. Итог: сумма набранных баллов, делённая на максимум доступных категорий и умноженная на 100.",
+        "kk": "Қайталанған бұзушылық үшін балл қайта шегерілмейді. Шегерім санат салмағымен шектеледі. Нәтиже: жиналған балл тексерілген санаттардың максимумына бөлініп, 100-ге көбейтіледі.",
+        "en": "Repeated observations are charged once. Deductions are capped by category weight. Total: earned points divided by available category weights, multiplied by 100.",
+    },
+})
+
+
 def t(key: str, lang: str | None = None, **kwargs) -> str:
     """Look up `key` in the given language, falling back to Russian and
     then to the raw key if nothing is found (never raises — a missing

@@ -16,3 +16,5 @@ build/
 dist/
 
 .tools/
+tmp/pdfs/
+output/pdf/

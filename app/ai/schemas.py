@@ -7,6 +7,8 @@ dropped with a warning rather than shown to the user (spec §13/§34).
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
 
 _ALLOWED_CATEGORIES = {"language", "style", "content", "structure"}
@@ -49,6 +51,17 @@ class AIError(BaseModel):
 class AIErrorList(BaseModel):
     model_config = ConfigDict(extra="forbid")
     errors: list[AIError] = Field(max_length=100)
+
+
+class DocumentAnalysis(AIErrorList):
+    evaluated_categories: list[Literal["language", "style", "content"]] = Field(min_length=1)
+
+    @field_validator("evaluated_categories")
+    @classmethod
+    def unique_categories(cls, value):
+        if len(value) != len(set(value)):
+            raise ValueError("Duplicate evaluated categories")
+        return value
 
 
 class IntroductionAnalysis(BaseModel):

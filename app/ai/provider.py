@@ -54,6 +54,7 @@ class LLMProvider(ABC):
     ) -> dict:
         """Call the model and parse strict JSON out of the response,
         stripping markdown code fences if the model added them anyway."""
+        self.last_usage = None
         response = await self.complete(
             system_prompt=system_prompt,
             user_prompt=user_prompt,

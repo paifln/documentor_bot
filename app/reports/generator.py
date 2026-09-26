@@ -13,12 +13,15 @@ language, no technical jargon).
 from __future__ import annotations
 
 from pathlib import Path
+from uuid import uuid4
 
 from app.common.enums import Severity
 from app.common.models import CheckResult
 from app.config.settings import get_settings
 from app.i18n import t
 from app.reports.pdf import build_pdf_report
+from app.reports.presentation import category_value, score_note, score_over_100
+from app.document.labels import display_location
 from app.rules.models import RulePreset
 
 _WORK_TYPE_KEYS = {
@@ -41,7 +44,7 @@ def build_summary_message(result: CheckResult, lang: str = "ru") -> str:
     lines = [
         t("summary.title", lang),
         "",
-        t("summary.score", lang, score=result.score, max_score=result.max_score),
+        t("summary.score", lang, score=score_over_100(result), max_score=100),
         "",
         t("summary.critical", lang, n=s.critical),
         t("summary.errors", lang, n=s.errors),
@@ -49,8 +52,10 @@ def build_summary_message(result: CheckResult, lang: str = "ru") -> str:
         t("summary.passed", lang, n=s.passed),
         "",
     ]
-    if not result.ai_analysis_available:
-        lines.append(t("summary.ai_partial", lang))
+    lines.append(score_note(result, lang))
+    lines.append(t("pdf.diagnostic", lang))
+    if result.preset_status != "department_verified":
+        lines.append(t("pdf.unverified", lang))
     lines.append(t("summary.footer", lang))
     return "\n".join(lines)
 
@@ -78,7 +83,7 @@ def build_recommendations_message(result: CheckResult, lang: str = "ru") -> str:
     for f in recs[:20]:
         lines.append(f"• {f.suggestion}")
         if f.location:
-            lines.append(f"  ({f.location})")
+            lines.append(f"  ({display_location(f.location, lang)})")
     if len(recs) > 20:
         lines.append(t("recommendations.more", lang, n=len(recs) - 20))
     return "\n".join(lines)
@@ -88,20 +93,17 @@ def build_results_message(result: CheckResult, lang: str = "ru") -> str:
     lines = [t("results.category_scores_title", lang), ""]
     for cs in result.category_scores:
         label = t(_CATEGORY_KEYS.get(cs.category.value, cs.category.value), lang)
-        lines.append(
-            f"{label}: {cs.earned_points:.0f}/{cs.max_points:.0f}"
-            if cs.evaluated
-            else f"{label}: {t('not_evaluated', lang)}"
-        )
+        lines.append(f"{label}: {category_value(cs, lang)}")
     lines.append("")
-    lines.append(t("results.total", lang, score=result.score, max_score=result.max_score))
+    lines.append(t("results.total", lang, score=score_over_100(result), max_score=100))
+    lines.append(score_note(result, lang))
     return "\n".join(lines)
 
 
 def _finding_line(finding, lang: str) -> str:
     line = f"{finding.severity.emoji} {finding.message}"
     if finding.location:
-        line += f"\n   {finding.location}"
+        line += f"\n   {display_location(finding.location, lang)}"
     if finding.expected and finding.actual:
         line += "\n   " + t(
             "pdf.expected_actual", lang, expected=finding.expected, actual=finding.actual
@@ -122,17 +124,19 @@ def generate_pdf(
 ) -> Path:
     settings = get_settings()
     output_path = settings.reports_dir / f"report_{check_id}.pdf"
-    temporary = output_path.with_suffix(".tmp.pdf")
-    build_pdf_report(
-        result,
-        output_path=temporary,
-        document_display_name=document_display_name,
-        institution=preset.institution,
-        work_type_label=t(
-            _WORK_TYPE_KEYS.get(preset.work_type.value, preset.work_type.value), lang
-        ),
-        lang=lang,
-    )
-
-    temporary.replace(output_path)
+    temporary = output_path.with_name(f"report_{check_id}.{uuid4().hex}.tmp.pdf")
+    try:
+        build_pdf_report(
+            result,
+            output_path=temporary,
+            document_display_name=document_display_name,
+            institution=preset.institution,
+            work_type_label=t(
+                _WORK_TYPE_KEYS.get(preset.work_type.value, preset.work_type.value), lang
+            ),
+            lang=lang,
+        )
+        temporary.replace(output_path)
+    finally:
+        temporary.unlink(missing_ok=True)
     return output_path

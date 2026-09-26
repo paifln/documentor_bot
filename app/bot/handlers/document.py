@@ -22,7 +22,9 @@ from app.reports.generator import (
     build_errors_message,
     build_recommendations_message,
     build_results_message,
+    generate_pdf,
 )
+from app.rules.models import RulePreset
 from app.rules.presets.loader import get_preset_registry
 from app.security.files import SecureFileStore
 from app.security.validation import run_all_validations, validate_extension, validate_mime_type
@@ -156,6 +158,17 @@ async def resend_pdf(callback: CallbackQuery, session: AsyncSession, db_user: Us
         await callback.message.answer(t("pdf_not_available", lang))
         await callback.answer()
         return
+    # Refresh presentation of retained reports without rerunning analysis or
+    # modifying the immutable result. Expired PDFs are not resurrected.
+    if check.result_snapshot and check.preset_snapshot:
+        await asyncio.to_thread(
+            generate_pdf,
+            restore_result(check),
+            RulePreset.model_validate(check.preset_snapshot),
+            (check.job_payload or {}).get("display_filename", "document.docx"),
+            check.id,
+            lang,
+        )
     with open(pdf_path, "rb") as f:
         await callback.message.answer_document(
             BufferedInputFile(f.read(), filename=pdf_path.name), caption=t("pdf_caption", lang)

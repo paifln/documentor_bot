@@ -43,6 +43,9 @@ class CategoryScore(BaseModel):
     max_points: float
     earned_points: float
     evaluated: bool = True
+    coverage: float = Field(default=1.0, ge=0, le=1)
+    deductions: dict[str, float] = Field(default_factory=dict)
+    deduction_labels: dict[str, str] = Field(default_factory=dict)
 
     @property
     def percentage(self) -> float:
@@ -71,4 +74,9 @@ class CheckResult(BaseModel):
     ai_analysis_available: bool = True
     ai_coverage: float = 0.0
     ai_tokens_used: int = 0
+    scoring_version: str = "legacy"
+    preset_status: str = "unverified"
+    provisional: bool = False
+    evaluated_max_score: float = 100.0
+    ai_failure_reasons: list[str] = Field(default_factory=list)
     processing_time_seconds: float | None = None

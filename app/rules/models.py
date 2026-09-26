@@ -7,6 +7,8 @@ rules/presets/, without touching Python code.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.common.enums import Alignment, PageOrientation, WorkType
@@ -97,6 +99,36 @@ class ScoringWeights(BaseModel):
         return self
 
 
+class ScoringPolicy(BaseModel):
+    """Versioned diagnostic rubric, independent of university grading."""
+
+    version: Literal["2"] = "2"
+    critical: float = Field(default=0.35, ge=0, le=1)
+    error: float = Field(default=0.15, ge=0, le=1)
+    warning: float = Field(default=0.05, ge=0, le=1)
+
+    @model_validator(mode="after")
+    def ordered_penalties(self):
+        if not self.critical >= self.error >= self.warning:
+            raise ValueError("Penalties must follow critical >= error >= warning")
+        return self
+
+
+class RuleProvenance(BaseModel):
+    status: Literal["unverified", "department_verified"] = "unverified"
+    scope: str = ""
+    sources: list[str] = Field(default_factory=list)
+    reviewed_on: str = ""
+
+    @model_validator(mode="after")
+    def verified_requires_evidence(self):
+        if self.status == "department_verified" and not (
+            self.scope.strip() and self.sources and self.reviewed_on.strip()
+        ):
+            raise ValueError("Verified presets require scope, sources and review date")
+        return self
+
+
 class RulePreset(BaseModel):
     id: str
     name: str
@@ -111,6 +143,9 @@ class RulePreset(BaseModel):
     structure: StructureRule
     references: ReferencesRule = Field(default_factory=ReferencesRule)
     scoring: ScoringWeights = Field(default_factory=ScoringWeights)
+    scoring_policy: ScoringPolicy = Field(default_factory=ScoringPolicy)
+    provenance: RuleProvenance = Field(default_factory=RuleProvenance)
+    advisory_rules: list[str] = Field(default_factory=list)
     is_active: bool = True
 
     def validate_weights(self) -> None:

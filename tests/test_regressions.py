@@ -160,8 +160,8 @@ async def test_budget_includes_each_request_and_output():
 
 def test_unavailable_categories_do_not_get_points(sample_preset):
     result = aggregate([], [], sample_preset, {}, False)
-    assert result.max_score == 50
-    assert result.score == 50
+    assert result.max_score == 100
+    assert result.score == 100
     assert all(
         c.earned_points == 0 and not c.evaluated
         for c in result.category_scores
@@ -187,11 +187,12 @@ def test_settings_reject_unknown_provider_and_negative_limit():
         Settings(_env_file=None, MAX_PAGES=-1)
 
 
-def test_pdf_fallback_is_stable(monkeypatch):
+def test_pdf_without_unicode_font_fails_explicitly(monkeypatch):
     from app.reports import fonts
 
     monkeypatch.setattr(fonts, "_registered", False)
     monkeypatch.setattr(fonts, "_registered_family", "Helvetica")
     monkeypatch.setattr(fonts, "_CANDIDATES", [])
-    assert fonts.ensure_unicode_font_registered() == "Helvetica"
-    assert fonts.ensure_unicode_font_registered() == "Helvetica"
+    with pytest.raises(RuntimeError, match="Unicode TTF"):
+        fonts.ensure_unicode_font_registered()
+    assert not fonts._registered

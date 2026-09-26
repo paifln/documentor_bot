@@ -5,6 +5,36 @@ from app.common.models import CategoryScore, CheckResult, CheckSummary, Finding
 from app.reports.pdf import build_pdf_report
 
 
+def test_failed_report_refresh_keeps_previous_pdf_and_cleans_temporary(monkeypatch, sample_preset):
+    import pytest
+    from app.config.settings import get_settings
+    from app.reports import generator
+
+    previous = get_settings().reports_dir / "report_9.pdf"
+    previous.write_bytes(b"previous report")
+
+    def fail(result, *, output_path, **kwargs):
+        output_path.write_bytes(b"incomplete report")
+        raise RuntimeError("render failed")
+
+    monkeypatch.setattr(generator, "build_pdf_report", fail)
+    with pytest.raises(RuntimeError):
+        generator.generate_pdf(
+            CheckResult(score=0, summary=CheckSummary()), sample_preset, "work.docx", 9
+        )
+    assert previous.read_bytes() == b"previous report"
+    assert not list(previous.parent.glob("*.tmp.pdf"))
+
+
+def test_pdf_text_preserves_kazakh_and_marks_unsupported_characters():
+    from app.reports.text import pdf_text
+
+    assert pdf_text("Әә Ғғ Ққ Ңң Өө Ұұ Үү Һһ Іі") == "Әә Ғғ Ққ Ңң Өө Ұұ Үү Һһ Іі"
+    assert pdf_text("A\x00B\u200bC") == "ABC"
+    assert "[U+10FFFF]" in pdf_text("\U0010ffff")
+    assert pdf_text("x < y & z") == "x &lt; y &amp; z"
+
+
 def test_pdf_report_generates_file(tmp_path):
     result = CheckResult(
         score=84,

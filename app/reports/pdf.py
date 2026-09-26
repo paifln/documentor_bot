@@ -35,6 +35,9 @@ from app.common.exceptions import ReportGenerationError
 from app.common.models import CheckResult
 from app.i18n import t
 from app.reports.fonts import ensure_unicode_font_registered
+from app.reports.text import pdf_text
+from app.reports.presentation import category_value, score_note, score_over_100
+from app.document.labels import display_location
 
 _CATEGORY_KEYS = {
     "formatting": "category.formatting",
@@ -58,9 +61,7 @@ def _xml_escape(text: str) -> str:
     '&', '<', '>' (e.g. "R&D", "x < y", generic types like "List<T>"), which
     would otherwise break ReportLab's markup parser and abort the whole
     PDF build."""
-    if not text:
-        return text
-    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return pdf_text(text)
 
 
 def _build_styles(font_family: str):
@@ -76,7 +77,10 @@ def _build_styles(font_family: str):
             name="ReportTitle",
             parent=styles["Title"],
             fontName=f"{font_family}-Bold",
-            fontSize=20,
+            fontSize=26,
+            leading=32,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#12334A"),
             spaceAfter=6,
         )
     )
@@ -96,8 +100,12 @@ def _build_styles(font_family: str):
             parent=styles["BodyText"],
             fontName=font_family,
             alignment=TA_LEFT,
-            spaceAfter=6,
-            leftIndent=6,
+            spaceAfter=8,
+            leading=14,
+            borderPadding=8,
+            backColor=colors.HexColor("#F2F6F8"),
+            leftIndent=8,
+            rightIndent=8,
         )
     )
     return styles
@@ -124,6 +132,8 @@ def build_pdf_report(
             rightMargin=20 * mm,
         )
         story = []
+        doc.title = "Documentor - " + document_display_name
+        doc.author = "Documentor"
 
         story.append(Paragraph("DOCUMENTOR", styles["ReportTitle"]))
         story.append(Paragraph(t("pdf.title", lang), styles["Heading3"]))
@@ -147,16 +157,21 @@ def build_pdf_report(
         )
         story.append(
             Paragraph(
-                f"<b>{t('pdf.date', lang)}:</b> {dt.datetime.now().strftime('%d.%m.%Y %H:%M')}",
+                f"<b>{t('pdf.date', lang)}:</b> {dt.datetime.now(dt.timezone.utc).strftime('%d.%m.%Y %H:%M UTC')}",
                 styles["Normal"],
             )
         )
         story.append(
             Paragraph(
-                f"<b>{t('pdf.total', lang)}:</b> {result.score:.0f} / {result.max_score:.0f}",
+                f"<b>{t('pdf.total', lang)}:</b> {score_over_100(result):g} / 100",
                 styles["Normal"],
             )
         )
+        story.append(Spacer(1, 8))
+        story.append(Paragraph(_xml_escape(score_note(result, lang)), styles["BodyText"]))
+        story.append(Paragraph(t("pdf.diagnostic", lang), styles["BodyText"]))
+        if result.preset_status != "department_verified":
+            story.append(Paragraph(t("pdf.unverified", lang), styles["BodyText"]))
         story.append(Spacer(1, 14))
 
         # 1. Category scores table
@@ -167,19 +182,19 @@ def build_pdf_report(
             table_data.append(
                 [
                     label,
-                    f"{cs.earned_points:.0f}/{cs.max_points:.0f}"
-                    if cs.evaluated
-                    else t("not_evaluated", lang),
+                    Paragraph(_xml_escape(category_value(cs, lang)), styles["Normal"]),
                 ]
             )
-        table = Table(table_data, colWidths=[100 * mm, 40 * mm])
+        table = Table(table_data, colWidths=[112 * mm, 58 * mm], repeatRows=1, hAlign="LEFT")
         table.setStyle(
             TableStyle(
                 [
                     ("FONTNAME", (0, 0), (-1, -1), font_family),
                     ("FONTNAME", (0, 0), (-1, 0), f"{font_family}-Bold"),
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8e8f5")),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    ("LINEBELOW", (0, 0), (-1, 0), 1, colors.HexColor("#167D9A")),
+                    ("TOPPADDING", (0, 0), (-1, -1), 9),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
                     ("FONTSIZE", (0, 0), (-1, -1), 10),
                     (
                         "ROWBACKGROUNDS",
@@ -196,10 +211,10 @@ def build_pdf_report(
         summary = result.summary
         story.append(
             Paragraph(
-                f"{t('summary.critical', lang, n=summary.critical)} &nbsp;&nbsp; "
-                f"{t('summary.errors', lang, n=summary.errors)} &nbsp;&nbsp; "
-                f"{t('summary.warnings', lang, n=summary.warnings)} &nbsp;&nbsp; "
-                f"{t('summary.passed', lang, n=summary.passed)}",
+                f"{_xml_escape(t('summary.critical', lang, n=summary.critical).lstrip('🔴 '))} &nbsp;&nbsp; "
+                f"{_xml_escape(t('summary.errors', lang, n=summary.errors).lstrip('🟠 '))} &nbsp;&nbsp; "
+                f"{_xml_escape(t('summary.warnings', lang, n=summary.warnings).lstrip('🟡 '))} &nbsp;&nbsp; "
+                f"{_xml_escape(t('summary.passed', lang, n=summary.passed).lstrip('🟢 '))}",
                 styles["Normal"],
             )
         )
@@ -234,25 +249,69 @@ def build_pdf_report(
         ]
         story.append(Paragraph(t("pdf.section4", lang), styles["SectionHeading"]))
         if not result.ai_analysis_available:
-            story.append(Paragraph(t("pdf.section4.partial", lang), styles["FindingBody"]))
-        if not text_findings:
+            story.append(
+                Paragraph(
+                    _xml_escape(t("pdf.section4.partial", lang).lstrip("⚠️ ")), styles["FindingBody"]
+                )
+            )
+        if not text_findings and result.ai_analysis_available:
             story.append(Paragraph(t("pdf.section4.none", lang), styles["FindingBody"]))
         for f in text_findings:
             story.append(_finding_paragraph(f, styles, lang, show_quote=True))
 
-        story.append(Spacer(1, 16))
+        if result.scoring_version != "legacy":
+            story.append(Paragraph(t("pdf.deductions", lang), styles["SectionHeading"]))
+            story.append(
+                Paragraph(t("pdf.method", lang, version=result.scoring_version), styles["BodyText"])
+            )
+            for cs in result.category_scores:
+                if not cs.evaluated:
+                    continue
+                label = t(_CATEGORY_KEYS.get(cs.category.value, cs.category.value), lang)
+                deducted = round(cs.max_points - cs.earned_points, 1)
+                # Findings above already explain each issue. Do not repeat whole
+                # paragraphs in an appendix; show the effective capped deductions.
+                story.append(
+                    Paragraph(
+                        f"{_xml_escape(label)}: {cs.max_points:g} - {deducted:g} = {cs.earned_points:g}",
+                        styles["BodyText"],
+                    )
+                )
+        story.append(Spacer(1, 12))
         story.append(Paragraph(f"<i>{t('pdf.footer', lang)}</i>", styles["Normal"]))
 
-        doc.build(story)
+        def page_frame(canvas, document):
+            canvas.saveState()
+            canvas.setStrokeColor(colors.HexColor("#167D9A"))
+            canvas.setLineWidth(2)
+            canvas.line(20 * mm, 282 * mm, 190 * mm, 282 * mm)
+            canvas.setFont(font_family, 8)
+            canvas.setFillColor(colors.HexColor("#536777"))
+            canvas.drawString(20 * mm, 12 * mm, "DOCUMENTOR")
+            canvas.drawRightString(190 * mm, 12 * mm, str(document.page))
+            canvas.restoreState()
+
+        doc.build(story, onFirstPage=page_frame, onLaterPages=page_frame)
         return output_path
     except Exception as exc:  # noqa: BLE001
         raise ReportGenerationError(str(exc)) from exc
 
 
 def _finding_paragraph(finding, styles, lang: str, show_quote: bool = False):
-    location = _xml_escape(finding.location) or finding.category.value
+    category = "structure" if finding.category.value == "references" else finding.category.value
+    location = _xml_escape(
+        display_location(finding.location, lang) or t(_CATEGORY_KEYS.get(category, category), lang)
+    )
     message = _xml_escape(finding.message)
-    text = f"{finding.severity.emoji} <b>{location}</b><br/>{message}"
+    severity_color = {
+        "critical": "#A12D3C",
+        "error": "#A34B17",
+        "warning": "#8A6800",
+        "info": "#167D9A",
+        "pass": "#23704B",
+    }[finding.severity.value]
+    severity_label = t(f"severity.{finding.severity.value}", lang)
+    text = f"<font color='{severity_color}'>{severity_label}</font> <b>{location}</b><br/>{message}"
     if finding.expected and finding.actual:
         text += "<br/>" + t(
             "pdf.expected_actual",
@@ -264,10 +323,16 @@ def _finding_paragraph(finding, styles, lang: str, show_quote: bool = False):
         safe_quote = _xml_escape(finding.original_text)
         text += f'<br/>{t("pdf.quote_label", lang)}: "{safe_quote}"'
     if finding.suggestion:
-        text += f"<br/>💡 {_xml_escape(finding.suggestion)}"
+        text += f"<br/>{_xml_escape(finding.suggestion)}"
     if finding.source.value == "ai" and finding.confidence is not None:
         pct = round(finding.confidence * 100)
         text += f"<br/><font size=8 color='grey'>{t('source.ai', lang)} · {t('confidence_label', lang, pct=pct)}</font>"
     elif finding.source.value == "rule_engine":
         text += f"<br/><font size=8 color='grey'>{t('source.rule_engine', lang)}</font>"
-    return Paragraph(text, styles["FindingBody"])
+    paragraph = Paragraph(text, styles["FindingBody"])
+    # Keep normal findings together, but let unusually long quotes split.
+    from reportlab.platypus import KeepTogether
+
+    if paragraph.wrap(160 * mm, 250 * mm)[1] < 180 * mm:
+        return KeepTogether([paragraph])
+    return paragraph

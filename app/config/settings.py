@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     llm_base_url: str = Field(default="", alias="LLM_BASE_URL")
     llm_max_output_tokens: int = Field(default=2000, alias="LLM_MAX_OUTPUT_TOKENS")
     llm_timeout_seconds: int = Field(default=60, alias="LLM_TIMEOUT_SECONDS")
+    llm_analysis_timeout_seconds: int = Field(default=600, alias="LLM_ANALYSIS_TIMEOUT_SECONDS")
     llm_max_retries: int = Field(default=3, alias="LLM_MAX_RETRIES")
 
     # --- Limits ---
@@ -81,6 +82,7 @@ class Settings(BaseSettings):
     @field_validator(
         "llm_max_output_tokens",
         "llm_timeout_seconds",
+        "llm_analysis_timeout_seconds",
         "llm_max_retries",
         "max_file_size_mb",
         "max_pages",

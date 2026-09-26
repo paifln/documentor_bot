@@ -69,3 +69,22 @@ scoring:
   content: 25
 
 is_active: true
+
+# No current department-specific formatting guide has been verified.
+provenance:
+  status: unverified
+  scope: "Предварительный профиль ЗКУ им. М. Утемисова; требуется методичка кафедры."
+  sources:
+    - "https://wku.edu.kz/images/2025/akadem-ru25.pdf"
+  reviewed_on: "2026-09-26"
+advisory_rules:
+  - structure.section.theoretical_part
+  - structure.section.practical_part
+  - structure.min_words.introduction
+  - structure.min_words.conclusion
+  - references.min_count
+scoring_policy:
+  version: "2"
+  critical: 0.35
+  error: 0.15
+  warning: 0.05
