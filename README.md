@@ -1,46 +1,46 @@
 # Documentor
 
-Documentor — Telegram-бот для предварительной проверки студенческих работ в формате DOCX. Он помогает найти ошибки оформления и структуры, проверить язык, научный стиль и содержание, а затем получить понятный PDF-отчёт с рекомендациями.
+Documentor is a Telegram bot for reviewing student papers in DOCX format. It checks formatting and structure, analyzes language, academic style, and content, and produces a PDF report with actionable recommendations.
 
-Проект ориентирован на университетскую среду Казахстана. В комплект входят предварительные профили ЗКУ имени Махамбета Утемисова для курсовых и дипломных работ, рефератов и отчётов по практике. Интерфейс и отчёты доступны на русском, казахском и английском языках.
+The project is designed for universities in Kazakhstan. It includes provisional presets for coursework, graduation theses, essays, and internship reports at Makhambet Utemisov West Kazakhstan University. The interface and reports support Russian, Kazakh, and English.
 
-## Возможности
+## Features
 
-- Проверка шрифта, размера текста, полей, интервалов, отступов и заголовков.
-- Определение разделов работы и базовая проверка списка литературы и ссылок.
-- Анализ грамматики, академического стиля и логики текста через настроенный AI-сервис.
-- Результат по шкале от 0 до 100, оценки по категориям и объяснение снижения баллов.
-- PDF с местами замечаний, короткими цитатами и рекомендациями.
-- История проверок, повторное получение отчётов и удаление завершённой истории.
-- Фоновая обработка документов и повторная доставка при временном сбое Telegram.
+- Checks fonts, text size, margins, line spacing, indentation, and headings.
+- Detects document sections and performs basic checks of references and citations.
+- Reviews grammar, academic style, and reasoning through a configured AI service.
+- Provides a score out of 100, category scores, and explanations of deductions.
+- Generates PDF reports with issue locations, short excerpts, and recommendations.
+- Keeps a check history, supports downloading reports again, and allows users to delete completed checks.
+- Processes documents in the background and retries delivery after temporary Telegram failures.
 
-## Как пользоваться
+## Usage
 
-Откройте бота, отправьте `/start`, выберите язык и тип работы. Загрузите DOCX; в подписи можно указать тему исследования. После обработки бот покажет результат и предложит скачать PDF.
+Open the bot, send `/start`, and select a language and document type. Upload a DOCX file; you can include the research topic in its caption. Once processing is complete, the bot displays the result and offers a PDF report.
 
-## Как считается результат
+## Scoring
 
-Каждая категория имеет вес, заданный в профиле требований. Повторные сообщения об одном и том же нарушении не умножают штраф. Баллы не опускаются ниже нуля.
+Each category has a weight defined in the selected rules preset. Repeated observations of the same issue do not multiply the penalty. Category scores cannot fall below zero.
 
-Максимум общего результата всегда равен **100**. При полной проверке он складывается из баллов пяти категорий: оформление, структура, язык, стиль и содержание. При частичном сбое сохраняются успешные оценки и показывается доля текста, проверенная в каждой AI-категории. Итог нормируется на 100 по доступным категориям и явно помечается как предварительный. Непроверенная категория не получает выдуманную оценку.
+The overall maximum is always **100 points**. A complete review combines five categories: formatting, structure, language, style, and content. If some AI requests fail, successful assessments are retained and the proportion of text reviewed is displayed for each AI category. The overall score is normalized to 100 using the available categories and clearly marked as provisional. Unreviewed categories are not assigned fabricated scores.
 
-Это диагностический показатель, а не итоговая оценка преподавателя или комиссии. AI может ошибаться. Сервис не проверяет плагиат, не подтверждает достоверность источников и не оценивает защиту работы.
+This is a diagnostic score, not a grade awarded by a supervisor or examination committee. AI assessments can be incorrect. The service does not detect plagiarism, verify the authenticity of sources, or assess an oral defense.
 
-Профили требований нужно сверять с действующей методичкой конкретной кафедры. Неподтверждённые минимумы слов и источников представлены как рекомендации без штрафа.
+Presets must be checked against the current guidelines of the relevant department. Unverified minimum word and source counts are treated as recommendations without score deductions.
 
-## Запуск через Docker
+## Run with Docker
 
-Требуется Docker с поддержкой Compose.
+Docker with Compose support is required.
 
-1. Скопируйте `.env.example` в `.env`.
-2. Укажите `BOT_TOKEN` и параметры AI-сервиса: `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`, при необходимости `LLM_BASE_URL`.
-3. Выполните:
+1. Copy `.env.example` to `.env`.
+2. Set `BOT_TOKEN` and the AI service settings: `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`, and optionally `LLM_BASE_URL`.
+3. Start the application:
 
 ```bash
 docker compose up --build -d
 ```
 
-Compose запускает PostgreSQL, Redis, миграции, бота и обработчик документов. Данные хранятся в отдельных томах. Внешние порты базы и Redis не публикуются.
+Compose starts PostgreSQL, Redis, database migrations, the bot, and the document worker. Persistent data is stored in separate volumes. PostgreSQL and Redis ports are not exposed to the host.
 
 ```bash
 docker compose ps
@@ -48,11 +48,11 @@ docker compose logs --tail 50 bot worker
 docker compose stop
 ```
 
-Для работы без внешнего AI установите `LLM_PROVIDER=mock`. Оформление и структура продолжат проверяться, а текстовые категории будут обозначены как непроверенные.
+To run without an external AI service, set `LLM_PROVIDER=mock`. Formatting and structure checks remain available; language, style, and content are marked as unreviewed.
 
-## Локальная разработка
+## Local development
 
-Нужны Python 3.12 и Redis.
+Python 3.12 and Redis are required.
 
 ```bash
 python -m venv .venv
@@ -63,50 +63,52 @@ python -m app.database.bootstrap
 python -m app.main
 ```
 
-В другом терминале запустите обработчик:
+Start the worker in another terminal with the same environment:
 
 ```bash
 arq app.worker.WorkerSettings
 ```
 
-Для локальной разработки по умолчанию используется SQLite. Изменения схемы управляются Alembic.
+Local development uses SQLite by default. Database schema changes are managed by Alembic.
 
-## Настройки
+## Configuration
 
-Правила оформления и веса категорий находятся в `rules/presets`. Промпты — в `prompts`. После изменения настроек перезапустите bot и worker. Уже сохранённые результаты не пересчитываются.
+Formatting rules and category weights are stored in `rules/presets`. The active AI prompt is `prompts/review.txt`. Restart the bot and worker after changing configuration. Previously saved results are not recalculated.
 
-`MAX_AI_TOKENS_PER_CHECK` ограничивает объём AI-проверки; `LLM_ANALYSIS_TIMEOUT_SECONDS` — её общую длительность. Ограничения размера файлов, числа проверок и сроков хранения задаются в `.env`.
+`MAX_AI_TOKENS_PER_CHECK` limits the AI review budget, and `LLM_ANALYSIS_TIMEOUT_SECONDS` limits the duration of the AI stage. File size limits, usage quotas, and retention periods are configured in `.env`.
 
-Для PDF нужен шрифт с русскими и казахскими символами. Docker-образ содержит DejaVu Sans; для собственного окружения можно задать `PDF_FONT_PATH` и `PDF_FONT_PATH_BOLD`.
+PDF generation requires a font with Russian and Kazakh character support. The Docker image includes DejaVu Sans. In a custom environment, set `PDF_FONT_PATH` and `PDF_FONT_PATH_BOLD` if needed.
 
-## Архитектура
+## Architecture
 
-Telegram-бот принимает файл и сохраняет задание в SQL. Redis передаёт обработчику идентификатор задания. Обработчик разбирает DOCX, применяет правила, выполняет AI-анализ и сохраняет результат. Формирование отчёта и доставка отделены от анализа: повторная отправка не вызывает повторных AI-запросов.
+The Telegram bot receives a file and saves a job in SQL. Redis passes the job ID to the worker. The worker parses the DOCX file, applies deterministic rules, performs AI analysis, and saves the result. Report generation and delivery are separate from analysis, so delivery retries do not trigger additional AI requests.
 
-Правила, расчёт баллов, проверка AI-ответов и представление результата разделены на самостоятельные модули. Для каждой проверки сохраняются снимок требований, версия расчёта и охват анализа. Общий слой представления используется в Telegram и PDF.
+Rules, scoring, AI response validation, and report presentation are organized into separate modules. Each check stores a snapshot of its rules, the scoring version, and analysis coverage. Telegram and PDF reports use a shared presentation layer.
 
-## Проверка изменений
+## Testing
 
 ```bash
 ruff check app tests
 pytest -q
 ```
 
-Тесты не требуют рабочих Telegram- или AI-ключей. Интеграционные проверки PostgreSQL и Redis запускаются на изолированной инфраструктуре через `docker-compose.test.yml`; подробности приведены в [документации](docs/ARCHITECTURE.md).
+Tests do not require working Telegram or AI credentials. PostgreSQL and Redis integration tests run against isolated services configured in `docker-compose.test.yml`; see the [architecture documentation](docs/ARCHITECTURE.md) for details.
 
-Предпросмотр PDF без Telegram и AI:
+Preview a PDF without Telegram or AI:
 
 ```bash
 python -m app.reports.preview demo/bad_example_makhambet.docx output/pdf/example.pdf
 ```
 
-## Работа с данными
+## Data handling
 
-Исходный DOCX удаляется после сохранения результата проверки. Внешнему AI-сервису передаются фрагменты текста; это следует учитывать при выборе сервиса и правил университетского использования. Отчёты могут содержать короткие цитаты. Сроки хранения результатов и PDF настраиваются отдельно. Секреты из `.env` не включаются в репозиторий и Docker-образ.
+The source DOCX file is deleted after the analysis result is saved. Text excerpts are sent to the configured external AI service; institutions should consider this when choosing a provider and defining usage policies. Reports may contain short quotations. Results and PDFs have separate configurable retention periods. Secrets in `.env` are excluded from the repository and Docker image.
 
-## Документация
+## Documentation
 
-- [Архитектура и эксплуатация](docs/ARCHITECTURE.md)
-- [Сопоставление требований ЗКУ](docs/WKU_REVIEW.md)
-- [Речь для защиты проекта](docs/DEFENSE_SPEECH.md)
-- [Сценарий демонстрации](DEFENSE.md)
+The following supporting documents are currently written in Russian:
+
+- [Architecture and operations](docs/ARCHITECTURE.md)
+- [Review of WKU requirements](docs/WKU_REVIEW.md)
+- [Project defense speech](docs/DEFENSE_SPEECH.md)
+- [Demonstration guide](DEFENSE.md)
