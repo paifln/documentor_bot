@@ -36,7 +36,10 @@ _CANDIDATES: list[tuple[str, str | None]] = [
     (os.environ.get("PDF_FONT_PATH", ""), os.environ.get("PDF_FONT_PATH_BOLD", "")),
     # Linux / Docker (see Dockerfile: fonts-dejavu-core) — DejaVu Sans
     # covers Cyrillic + Cyrillic Extended-A (Kazakh letters) fully.
-    ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+    (
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    ),
     ("/usr/share/fonts/dejavu/DejaVuSans.ttf", "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"),
     (
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
@@ -47,18 +50,22 @@ _CANDIDATES: list[tuple[str, str | None]] = [
     (r"C:\Windows\Fonts\times.ttf", r"C:\Windows\Fonts\timesbd.ttf"),
     # macOS
     ("/Library/Fonts/Arial.ttf", "/Library/Fonts/Arial Bold.ttf"),
-    ("/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+    (
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    ),
 ]
 
 _registered = False
+_registered_family = "Helvetica"
 
 
 def ensure_unicode_font_registered() -> str:
     """Idempotently registers a Cyrillic/Kazakh-capable font and returns the
     ReportLab font family name to use in styles. Safe to call many times."""
-    global _registered
+    global _registered, _registered_family
     if _registered:
-        return FONT_FAMILY
+        return _registered_family
 
     for regular_path, bold_path in _CANDIDATES:
         if not regular_path or not Path(regular_path).exists():
@@ -80,6 +87,7 @@ def ensure_unicode_font_registered() -> str:
                 boldItalic=f"{FONT_FAMILY}-Bold",
             )
             logger.info("pdf_font_registered", path=regular_path, bold_found=bold_ok)
+            _registered_family = FONT_FAMILY
             _registered = True
             return FONT_FAMILY
         except Exception as exc:  # noqa: BLE001
@@ -95,5 +103,6 @@ def ensure_unicode_font_registered() -> str:
             "(Linux) or set PDF_FONT_PATH to a valid .ttf file."
         ),
     )
+    _registered_family = "Helvetica"
     _registered = True  # don't retry every call — the warning is enough
     return "Helvetica"

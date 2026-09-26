@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -39,10 +37,14 @@ services:
       - storage_data:/srv/app/data/storage
       - reports_data:/srv/app/data/reports
     depends_on:
+      init-storage:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   worker:
     build: .
@@ -58,10 +60,22 @@ services:
       - storage_data:/srv/app/data/storage
       - reports_data:/srv/app/data/reports
     depends_on:
+      init-storage:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  init-storage:
+    build: .
+    user: "0:0"
+    command: ["chown", "-R", "10001:10001", "/srv/app/data/storage", "/srv/app/data/reports"]
+    volumes:
+      - storage_data:/srv/app/data/storage
+      - reports_data:/srv/app/data/reports
 
   migrate:
     build: .

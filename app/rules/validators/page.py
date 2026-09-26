@@ -53,7 +53,9 @@ def validate_page(document: ParsedDocument, preset: RulePreset, lang: str = "ru"
     return findings
 
 
-def validate_headers_footers(document: ParsedDocument, preset: RulePreset, lang: str = "ru") -> list[Finding]:
+def validate_headers_footers(
+    document: ParsedDocument, preset: RulePreset, lang: str = "ru"
+) -> list[Finding]:
     """Informational only — the spec doesn't mandate a specific header/footer
     policy per preset by default, but we surface presence for transparency."""
     findings: list[Finding] = []
@@ -65,7 +67,9 @@ def validate_headers_footers(document: ParsedDocument, preset: RulePreset, lang:
             source=FindingSource.RULE_ENGINE,
             rule_id="page.header_footer",
             location=t("label.headers_footers", lang),
-            message=t("rule.header_footer.present" if present else "rule.header_footer.absent", lang),
+            message=t(
+                "rule.header_footer.present" if present else "rule.header_footer.absent", lang
+            ),
         )
     )
     return findings

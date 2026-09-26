@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.common.enums import FindingCategory, FindingSource, Severity
 from app.database.session import Base, str_enum_column
+
+if TYPE_CHECKING:
+    from app.database.models.check import Check
 
 
 class FindingRecord(Base):

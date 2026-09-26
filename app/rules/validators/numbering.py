@@ -30,8 +30,11 @@ def validate_numbering(structure: StructureReport, lang: str = "ru") -> list[Fin
                 source=FindingSource.RULE_ENGINE,
                 rule_id="numbering.level_jump",
                 message=t(
-                    "rule.numbering.level_jump", lang,
-                    heading=heading_text, prev=prev_level, curr=curr_level,
+                    "rule.numbering.level_jump",
+                    lang,
+                    heading=heading_text,
+                    prev=prev_level,
+                    curr=curr_level,
                 ),
             )
         )

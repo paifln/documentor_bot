@@ -4,7 +4,8 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject, User as TgUser
+from aiogram.types import TelegramObject
+from aiogram.types import User as TgUser
 
 from app.config.settings import get_settings
 from app.database.repositories.user_repository import UserRepository
@@ -45,6 +46,7 @@ class DbSessionMiddleware(BaseMiddleware):
                     admin_ids=settings.admin_id_list,
                 )
                 data["db_user"] = db_user
+                data["user_language"] = db_user.language or "ru"
                 await session.commit()
 
             try:

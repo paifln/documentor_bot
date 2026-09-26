@@ -18,9 +18,7 @@ from app.rules.models import RulePreset
 
 _IN_TEXT_CITATION = re.compile(r"\[\s*\d+(\s*[,\-]\s*\d+)*\s*\]")
 _ENTRY_NUMBER_PREFIX = re.compile(r"^\s*\d+[.\)]\s*")
-_REFERENCES_HEADING_PREFIX = re.compile(
-    r"(?i)^(список|references|bibliography|әдебиеттер)\s"
-)
+_REFERENCES_HEADING_PREFIX = re.compile(r"(?i)^(список|references|bibliography|әдебиеттер)\s")
 
 
 def _split_reference_entries(section_text: str) -> list[str]:
@@ -48,7 +46,12 @@ def validate_references(
         )
         return findings
 
-    entries = _split_reference_entries(references_section_text)
+    content = "\n".join(
+        line
+        for line in references_section_text.splitlines()
+        if line.strip() != ref_heading.raw_text.strip()
+    )
+    entries = _split_reference_entries(content)
     entries = [e for e in entries if not _REFERENCES_HEADING_PREFIX.match(e)]
 
     count = len(entries)
@@ -75,7 +78,9 @@ def validate_references(
             )
         )
 
-    normalized = [re.sub(r"\s+", " ", e.lower()) for e in entries]
+    normalized = [
+        re.sub(r"\s+", " ", _ENTRY_NUMBER_PREFIX.sub("", e).lower()).strip() for e in entries
+    ]
     duplicates = len(normalized) - len(set(normalized))
     if duplicates > rule.max_allowed_duplicate_sources:
         findings.append(

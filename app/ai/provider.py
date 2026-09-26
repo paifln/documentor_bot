@@ -10,8 +10,6 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from tenacity import retry, stop_after_attempt, wait_exponential
-
 from app.common.exceptions import AIProviderError, AIQuotaExceededError
 from app.config.logging import get_logger
 from app.config.settings import Settings
@@ -32,6 +30,10 @@ class LLMProvider(ABC):
     which callers then validate against a Pydantic schema (spec §13)."""
 
     name: str = "abstract"
+    last_usage: tuple[int, int] | None = None
+
+    async def aclose(self) -> None:
+        pass
 
     @abstractmethod
     async def complete(
@@ -58,6 +60,11 @@ class LLMProvider(ABC):
             max_tokens=max_tokens,
             temperature=0.1,
         )
+        self.last_usage = (
+            (response.input_tokens, response.output_tokens)
+            if response.input_tokens is not None and response.output_tokens is not None
+            else None
+        )
         text = response.raw_text.strip()
         if text.startswith("```"):
             text = text.strip("`")
@@ -82,6 +89,7 @@ class OpenAIProvider(LLMProvider):
             api_key=settings.llm_api_key,
             base_url=settings.llm_base_url or None,
             timeout=settings.llm_timeout_seconds,
+            max_retries=0,
         )
         self._model = settings.llm_model
         self._max_retries = settings.llm_max_retries
@@ -94,11 +102,6 @@ class OpenAIProvider(LLMProvider):
         max_tokens: int = 2000,
         temperature: float = 0.2,
     ) -> LLMResponse:
-        @retry(
-            stop=stop_after_attempt(self._max_retries),
-            wait=wait_exponential(multiplier=1, min=1, max=10),
-            reraise=True,
-        )
         async def _call():
             return await self._client.chat.completions.create(
                 model=self._model,
@@ -128,48 +131,8 @@ class OpenAIProvider(LLMProvider):
             output_tokens=getattr(usage, "completion_tokens", None),
         )
 
-
-class AnthropicProvider(LLMProvider):
-    """Placeholder for future Claude integration (spec §3: 'В будущем').
-
-    Left unimplemented intentionally — wiring in the Anthropic SDK is a
-    small, isolated change once credentials/model choice are decided.
-    """
-
-    name = "anthropic"
-
-    def __init__(self, settings: Settings):
-        raise NotImplementedError(
-            "AnthropicProvider is a placeholder. Implement using the "
-            "anthropic Python SDK following the same interface as OpenAIProvider."
-        )
-
-    async def complete(self, **kwargs) -> LLMResponse:  # pragma: no cover
-        raise NotImplementedError
-
-
-class GoogleProvider(LLMProvider):
-    """Placeholder for future Gemini integration."""
-
-    name = "google"
-
-    def __init__(self, settings: Settings):
-        raise NotImplementedError("GoogleProvider is a placeholder for future work.")
-
-    async def complete(self, **kwargs) -> LLMResponse:  # pragma: no cover
-        raise NotImplementedError
-
-
-class LocalLLMProvider(LLMProvider):
-    """Placeholder for a self-hosted model server (e.g. vLLM/Ollama)."""
-
-    name = "local"
-
-    def __init__(self, settings: Settings):
-        raise NotImplementedError("LocalLLMProvider is a placeholder for future work.")
-
-    async def complete(self, **kwargs) -> LLMResponse:  # pragma: no cover
-        raise NotImplementedError
+    async def aclose(self) -> None:
+        await self._client.close()
 
 
 class MockProvider(LLMProvider):
@@ -195,13 +158,9 @@ class MockProvider(LLMProvider):
 def build_llm_provider(settings: Settings) -> LLMProvider:
     providers: dict[str, type[LLMProvider]] = {
         "openai": OpenAIProvider,
-        "anthropic": AnthropicProvider,
-        "google": GoogleProvider,
-        "local": LocalLLMProvider,
         "mock": MockProvider,
     }
     provider_cls = providers.get(settings.llm_provider.lower())
     if provider_cls is None:
-        logger.warning("unknown_llm_provider_falling_back_to_mock", provider=settings.llm_provider)
-        provider_cls = MockProvider
+        raise ValueError("Unsupported LLM provider")
     return provider_cls(settings)

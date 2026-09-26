@@ -51,9 +51,24 @@ def test_ai_confidence_scales_deduction(sample_preset):
 
 def test_compute_summary_counts_by_severity():
     findings = [
-        Finding(category=FindingCategory.FORMATTING, severity=Severity.CRITICAL, source=FindingSource.RULE_ENGINE, message="a"),
-        Finding(category=FindingCategory.FORMATTING, severity=Severity.ERROR, source=FindingSource.RULE_ENGINE, message="b"),
-        Finding(category=FindingCategory.FORMATTING, severity=Severity.PASS, source=FindingSource.RULE_ENGINE, message="c"),
+        Finding(
+            category=FindingCategory.FORMATTING,
+            severity=Severity.CRITICAL,
+            source=FindingSource.RULE_ENGINE,
+            message="a",
+        ),
+        Finding(
+            category=FindingCategory.FORMATTING,
+            severity=Severity.ERROR,
+            source=FindingSource.RULE_ENGINE,
+            message="b",
+        ),
+        Finding(
+            category=FindingCategory.FORMATTING,
+            severity=Severity.PASS,
+            source=FindingSource.RULE_ENGINE,
+            message="c",
+        ),
     ]
     summary = compute_summary(findings)
     assert summary.critical == 1

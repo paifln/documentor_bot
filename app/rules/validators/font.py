@@ -29,7 +29,9 @@ def validate_font(document: ParsedDocument, preset: RulePreset, lang: str = "ru"
 
     dominant = stats[0]
     name_ok = (dominant.name or "").strip().lower() == rule.name.strip().lower()
-    size_ok = dominant.size_pt is not None and abs(dominant.size_pt - rule.size_pt) <= rule.tolerance_pt
+    size_ok = (
+        dominant.size_pt is not None and abs(dominant.size_pt - rule.size_pt) <= rule.tolerance_pt
+    )
 
     if name_ok and size_ok:
         findings.append(
@@ -51,7 +53,7 @@ def validate_font(document: ParsedDocument, preset: RulePreset, lang: str = "ru"
                 rule_id="font.main",
                 location=t("label.main_text", lang),
                 message=t("rule.font.main.error", lang),
-                expected=f"{rule.name}, {rule.size_pt} pt",
+                expected=f"{rule.name}, {rule.size_pt:g} pt",
                 actual=actual_desc,
             )
         )
@@ -83,7 +85,7 @@ def validate_font(document: ParsedDocument, preset: RulePreset, lang: str = "ru"
                 rule_id="font.mixed",
                 location=t("label.whole_document", lang),
                 message=t("rule.font.mixed", lang),
-                expected=f"{rule.name}, {rule.size_pt} pt — 100%",
+                expected=f"{rule.name}, {rule.size_pt:g} pt — 100%",
                 actual=foreign_desc or f"{foreign_share}%",
             )
         )
@@ -121,7 +123,7 @@ def validate_paragraph_font_consistency(
                 rule_id="font.paragraph_consistency",
                 location=t("label.paragraphs", lang, list=f"{sample}{more}"),
                 message=t("rule.font.paragraph_consistency", lang),
-                expected=f"{rule.name}, {rule.size_pt} pt",
+                expected=f"{rule.name}, {rule.size_pt:g} pt",
             )
         )
     return findings

@@ -7,7 +7,7 @@ dropped with a warning rather than shown to the user (spec §13/§34).
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
 
 _ALLOWED_CATEGORIES = {"language", "style", "content", "structure"}
 _ALLOWED_SEVERITIES = {"critical", "error", "warning", "info"}
@@ -16,10 +16,10 @@ _ALLOWED_SEVERITIES = {"critical", "error", "warning", "info"}
 class AIError(BaseModel):
     category: str
     severity: str
-    location: str = ""
+    location: str = Field(default="", max_length=255)
     original_text: str = ""
-    explanation: str
-    suggestion: str = ""
+    explanation: str = Field(min_length=1, max_length=2000)
+    suggestion: str = Field(default="", max_length=2000)
     confidence: float = Field(ge=0.0, le=1.0, default=0.5)
 
     @field_validator("category")
@@ -47,7 +47,8 @@ class AIError(BaseModel):
 
 
 class AIErrorList(BaseModel):
-    errors: list[AIError] = Field(default_factory=list)
+    model_config = ConfigDict(extra="forbid")
+    errors: list[AIError] = Field(max_length=100)
 
 
 class IntroductionAnalysis(BaseModel):
@@ -55,18 +56,19 @@ class IntroductionAnalysis(BaseModel):
     (spec §12 'смысловая структура' — relevance, problem, aim, tasks,
     object, subject, methods)."""
 
-    has_relevance: bool = False
-    has_problem_statement: bool = False
-    has_aim: bool = False
-    has_tasks: bool = False
-    has_object: bool = False
-    has_subject: bool = False
-    has_methods: bool = False
-    notes: str = ""
+    model_config = ConfigDict(extra="forbid")
+    has_relevance: StrictBool
+    has_problem_statement: StrictBool
+    has_aim: StrictBool
+    has_tasks: StrictBool
+    has_object: StrictBool
+    has_subject: StrictBool
+    has_methods: StrictBool
+    notes: str = Field(default="", max_length=2000)
 
 
 class ContentAssessment(BaseModel):
     topic_relevance_score: float = Field(ge=0.0, le=1.0, default=0.5)
     logical_coherence_score: float = Field(ge=0.0, le=1.0, default=0.5)
-    has_clear_conclusions: bool = False
+    has_clear_conclusions: StrictBool
     summary: str = ""

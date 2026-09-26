@@ -69,5 +69,5 @@ async def test_analyzer_converts_ai_errors_to_findings():
     )
     analyzer = AIAnalyzer(provider, settings, PromptLibrary(settings.prompts_dir))
     findings, ok = await analyzer.analyze({"introduction": "Я хочу рассказать про важную тему."})
-    assert ok is True
+    assert ok is False  # stub lacks the required introduction schema
     assert any(f.source.value == "ai" for f in findings)

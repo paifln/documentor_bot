@@ -20,6 +20,7 @@ between them (spec §2 stage messages).
 
 from __future__ import annotations
 
+import asyncio
 import time
 from collections.abc import Awaitable, Callable
 from pathlib import Path
@@ -27,6 +28,7 @@ from pathlib import Path
 from app.ai.analyzer import AIAnalyzer, PromptLibrary
 from app.ai.provider import build_llm_provider
 from app.analysis.aggregator import aggregate
+from app.common.exceptions import TooManyPagesError
 from app.common.models import CheckResult
 from app.config.logging import get_logger
 from app.config.settings import Settings
@@ -34,6 +36,7 @@ from app.document import structure as structure_module
 from app.document.parser import ParsedDocument, parse_docx
 from app.rules.engine import RuleEngine
 from app.rules.models import RulePreset
+from app.security.validation import run_all_validations
 
 logger = get_logger(__name__)
 
@@ -44,6 +47,7 @@ def build_pipeline(settings: Settings) -> "AnalysisPipeline":
     provider = build_llm_provider(settings)
     analyzer = AIAnalyzer(provider, settings, PromptLibrary(settings.prompts_dir))
     return AnalysisPipeline(RuleEngine(), analyzer)
+
 
 ProgressCallback = Callable[[str], Awaitable[None]]
 
@@ -69,11 +73,14 @@ class AnalysisPipeline:
         started = time.monotonic()
 
         await progress("structure")
-        document: ParsedDocument = parse_docx(docx_path)
+        await asyncio.to_thread(run_all_validations, docx_path, "document.docx", None)
+        document: ParsedDocument = await asyncio.to_thread(parse_docx, docx_path)
+        if document.estimated_page_count > self.ai_analyzer.settings.max_pages:
+            raise TooManyPagesError("Document exceeds estimated page limit")
         logger.info("document_parsed", pages_estimate=document.estimated_page_count)
 
         await progress("formatting")
-        rule_result = self.rule_engine.run(document, preset, lang)
+        rule_result = await asyncio.to_thread(self.rule_engine.run, document, preset, lang)
         logger.info("rules_completed", finding_count=len(rule_result.findings))
 
         await progress("text")
@@ -90,7 +97,7 @@ class AnalysisPipeline:
             )
             logger.info("ai_analysis_completed", finding_count=len(ai_findings), ok=ai_available)
         except Exception as exc:  # noqa: BLE001
-            logger.error("ai_analysis_failed", error=str(exc))
+            logger.error("ai_analysis_failed", error_type=type(exc).__name__)
             ai_available = False
 
         await progress("report")
@@ -104,4 +111,6 @@ class AnalysisPipeline:
             processing_time_seconds=elapsed,
         )
         logger.info("check_completed", score=result.score, elapsed_seconds=elapsed)
+        result.ai_coverage = getattr(self.ai_analyzer, "coverage", 0.0)
+        result.ai_tokens_used = getattr(self.ai_analyzer, "tokens_used", 0)
         return result

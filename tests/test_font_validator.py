@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from app.common.enums import Severity
 from app.document.parser import parse_docx
-from app.rules.validators.font import validate_font
-from app.rules.validators.font import validate_paragraph_font_consistency
+from app.rules.validators.font import validate_font, validate_paragraph_font_consistency
 
 
 def test_correct_font_passes(correct_docx, sample_preset):

@@ -6,7 +6,7 @@ from aiogram.types import Message
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.enums import UserRole
+from app.common.enums import CheckStatus, UserRole
 from app.database.models.check import Check
 from app.database.models.user import User
 from app.i18n import t
@@ -42,15 +42,25 @@ async def admin_stats(message: Message, db_user: User, session: AsyncSession) ->
         await message.answer(t("admin.only", db_user.language or "ru"))
         return
 
-    total_checks = (await session.execute(select(func.count(Check.id)))).scalar_one()
-    avg_score = (await session.execute(select(func.avg(Check.score)))).scalar_one()
+    total_checks = (
+        await session.execute(
+            select(func.count(Check.id)).where(Check.status == CheckStatus.COMPLETED)
+        )
+    ).scalar_one()
+    avg_score = (
+        await session.execute(
+            select(func.avg(Check.score)).where(
+                Check.status == CheckStatus.COMPLETED, Check.ai_analysis_available.is_(True)
+            )
+        )
+    ).scalar_one()
     total_users = (await session.execute(select(func.count(User.id)))).scalar_one()
 
     text = (
         "📊 Статистика системы:\n\n"
         f"Пользователей: {total_users}\n"
         f"Проверок выполнено: {total_checks}\n"
-        f"Средний балл: {round(avg_score, 1) if avg_score else '—'}"
+        f"Средний балл полных проверок: {round(avg_score, 1) if avg_score is not None else '—'}"
     )
     await message.answer(text)
 

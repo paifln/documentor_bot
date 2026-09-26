@@ -145,7 +145,7 @@ def detect_headings(paragraphs: list[ParagraphInfo]) -> list[DetectedHeading]:
                 normalized_text=normalized,
                 level=(p.outline_level or 0) + 1,
                 section_key=_match_section_key(normalized),
-                numbering=_extract_numbering(p.text.strip()),
+                numbering=_extract_numbering(p.text.strip()) or ("auto" if p.is_numbered else None),
             )
         )
     return headings
@@ -205,17 +205,18 @@ def split_into_logical_sections(
     receive the whole document in one request (spec §14)."""
     ordered = sorted(structure.headings, key=lambda h: h.paragraph_index)
     boundaries: list[tuple[int, str]] = [
-        (h.paragraph_index, h.section_key or f"unnamed:{h.paragraph_index}") for h in ordered
+        (h.paragraph_index, h.section_key or f"unnamed:{h.paragraph_index}")
+        for h in ordered
+        if h.section_key or h.level == 1
     ]
+
+    if not boundaries or boundaries[0][0] > 0:
+        boundaries.insert(0, (0, "body"))
 
     sections: dict[str, str] = {}
     for i, (start_idx, key) in enumerate(boundaries):
         end_idx = boundaries[i + 1][0] if i + 1 < len(boundaries) else len(document.paragraphs)
-        text = "\n".join(
-            p.text
-            for p in document.paragraphs[start_idx:end_idx]
-            if p.text.strip()
-        )
+        text = "\n".join(p.text for p in document.paragraphs[start_idx:end_idx] if p.text.strip())
         if key in sections:
             sections[key] += "\n" + text
         else:

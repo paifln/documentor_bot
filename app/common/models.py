@@ -25,7 +25,7 @@ class Finding(BaseModel):
     actual: str | None = None
     suggestion: str | None = None
     original_text: str | None = None
-    confidence: float | None = None  # only set for AI-sourced findings
+    confidence: float | None = Field(default=None, ge=0, le=1)  # only set for AI-sourced findings
 
     def to_display_line(self) -> str:
         line = f"{self.severity.emoji} {self.message}"
@@ -42,6 +42,7 @@ class CategoryScore(BaseModel):
     category: FindingCategory
     max_points: float
     earned_points: float
+    evaluated: bool = True
 
     @property
     def percentage(self) -> float:
@@ -68,4 +69,6 @@ class CheckResult(BaseModel):
     findings: list[Finding] = Field(default_factory=list)
     structure_sections_found: dict[str, bool] = Field(default_factory=dict)
     ai_analysis_available: bool = True
+    ai_coverage: float = 0.0
+    ai_tokens_used: int = 0
     processing_time_seconds: float | None = None

@@ -8,16 +8,19 @@ from app.i18n import t
 from app.rules.models import RulePreset
 
 
-def validate_spacing(document: ParsedDocument, preset: RulePreset, lang: str = "ru") -> list[Finding]:
+def validate_spacing(
+    document: ParsedDocument, preset: RulePreset, lang: str = "ru"
+) -> list[Finding]:
     findings: list[Finding] = []
     rule = preset.paragraph
     body = body_paragraphs(document)
 
     mismatched: list[int] = []
     for p in body:
-        if p.line_spacing is None:
-            continue
-        if p.line_spacing_rule and "MULTIPLE" not in str(p.line_spacing_rule):
+        if p.line_spacing is None or any(
+            x in (p.line_spacing_rule or "") for x in ("EXACT", "AT_LEAST")
+        ):
+            mismatched.append(p.index)
             continue
         if abs(p.line_spacing - rule.line_spacing) > rule.line_spacing_tolerance:
             mismatched.append(p.index)

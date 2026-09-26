@@ -44,7 +44,11 @@ _CATEGORY_KEYS = {
     "content": "category.content",
 }
 
-_DATE_LOCALE = {"ru": "ru_RU", "kk": "kk_KZ", "en": "en_US"}  # informational only, not used for formatting
+_DATE_LOCALE = {
+    "ru": "ru_RU",
+    "kk": "kk_KZ",
+    "en": "en_US",
+}  # informational only, not used for formatting
 
 
 def _xml_escape(text: str) -> str:
@@ -124,9 +128,23 @@ def build_pdf_report(
         story.append(Paragraph("DOCUMENTOR", styles["ReportTitle"]))
         story.append(Paragraph(t("pdf.title", lang), styles["Heading3"]))
         story.append(Spacer(1, 8))
-        story.append(Paragraph(f"<b>{t('pdf.file', lang)}:</b> {_xml_escape(document_display_name)}", styles["Normal"]))
-        story.append(Paragraph(f"<b>{t('pdf.institution', lang)}:</b> {_xml_escape(institution)}", styles["Normal"]))
-        story.append(Paragraph(f"<b>{t('pdf.work_type', lang)}:</b> {_xml_escape(work_type_label)}", styles["Normal"]))
+        story.append(
+            Paragraph(
+                f"<b>{t('pdf.file', lang)}:</b> {_xml_escape(document_display_name)}",
+                styles["Normal"],
+            )
+        )
+        story.append(
+            Paragraph(
+                f"<b>{t('pdf.institution', lang)}:</b> {_xml_escape(institution)}", styles["Normal"]
+            )
+        )
+        story.append(
+            Paragraph(
+                f"<b>{t('pdf.work_type', lang)}:</b> {_xml_escape(work_type_label)}",
+                styles["Normal"],
+            )
+        )
         story.append(
             Paragraph(
                 f"<b>{t('pdf.date', lang)}:</b> {dt.datetime.now().strftime('%d.%m.%Y %H:%M')}",
@@ -146,7 +164,14 @@ def build_pdf_report(
         table_data = [[t("pdf.table.category", lang), t("pdf.table.points", lang)]]
         for cs in result.category_scores:
             label = t(_CATEGORY_KEYS.get(cs.category.value, cs.category.value), lang)
-            table_data.append([label, f"{cs.earned_points:.0f}/{cs.max_points:.0f}"])
+            table_data.append(
+                [
+                    label,
+                    f"{cs.earned_points:.0f}/{cs.max_points:.0f}"
+                    if cs.evaluated
+                    else t("not_evaluated", lang),
+                ]
+            )
         table = Table(table_data, colWidths=[100 * mm, 40 * mm])
         table.setStyle(
             TableStyle(
@@ -156,7 +181,12 @@ def build_pdf_report(
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8e8f5")),
                     ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
                     ("FONTSIZE", (0, 0), (-1, -1), 10),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f7f7fb")]),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor("#f7f7fb")],
+                    ),
                 ]
             )
         )
@@ -176,7 +206,8 @@ def build_pdf_report(
 
         # 2. Formatting issues
         formatting_findings = [
-            f for f in result.findings
+            f
+            for f in result.findings
             if f.category.value == "formatting" and f.severity != Severity.PASS
         ]
         story.append(Paragraph(t("pdf.section2", lang), styles["SectionHeading"]))
@@ -187,7 +218,8 @@ def build_pdf_report(
 
         # 3. Structure
         structure_findings = [
-            f for f in result.findings
+            f
+            for f in result.findings
             if f.category.value in ("structure", "references") and f.severity != Severity.PASS
         ]
         story.append(Paragraph(t("pdf.section3", lang), styles["SectionHeading"]))
@@ -198,8 +230,7 @@ def build_pdf_report(
 
         # 4. Text analysis (AI)
         text_findings = [
-            f for f in result.findings
-            if f.category.value in ("language", "style", "content")
+            f for f in result.findings if f.category.value in ("language", "style", "content")
         ]
         story.append(Paragraph(t("pdf.section4", lang), styles["SectionHeading"]))
         if not result.ai_analysis_available:
@@ -224,8 +255,10 @@ def _finding_paragraph(finding, styles, lang: str, show_quote: bool = False):
     text = f"{finding.severity.emoji} <b>{location}</b><br/>{message}"
     if finding.expected and finding.actual:
         text += "<br/>" + t(
-            "pdf.expected_actual", lang,
-            expected=_xml_escape(finding.expected), actual=_xml_escape(finding.actual),
+            "pdf.expected_actual",
+            lang,
+            expected=_xml_escape(finding.expected),
+            actual=_xml_escape(finding.actual),
         )
     if show_quote and finding.original_text:
         safe_quote = _xml_escape(finding.original_text)

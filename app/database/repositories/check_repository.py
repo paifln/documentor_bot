@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from sqlalchemy import desc, select
+from sqlalchemy import delete, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -18,12 +18,16 @@ class CheckRepository:
         self.session = session
 
     async def create(self, document_id: int, rule_preset_id: str) -> Check:
-        check = Check(document_id=document_id, rule_preset_id=rule_preset_id, status=CheckStatus.RUNNING)
+        check = Check(
+            document_id=document_id, rule_preset_id=rule_preset_id, status=CheckStatus.PENDING
+        )
         self.session.add(check)
         await self.session.flush()
         return check
 
     async def complete(self, check: Check, result: CheckResult) -> Check:
+        await self.session.execute(delete(FindingRecord).where(FindingRecord.check_id == check.id))
+        check.result_snapshot = result.model_dump(mode="json")
         check.status = CheckStatus.COMPLETED
         check.score = result.score
         check.critical_count = result.summary.critical
@@ -42,10 +46,10 @@ class CheckRepository:
                     severity=f.severity,
                     source=f.source,
                     rule_id=f.rule_id,
-                    location=f.location,
+                    location=f.location[:255],
                     message=f.message,
-                    expected=f.expected,
-                    actual=f.actual,
+                    expected=f.expected[:255] if f.expected is not None else None,
+                    actual=f.actual[:255] if f.actual is not None else None,
                     suggestion=f.suggestion,
                     confidence=f.confidence,
                 )
@@ -54,6 +58,8 @@ class CheckRepository:
         return check
 
     async def fail(self, check: Check, error_detail: str) -> Check:
+        if check.status == CheckStatus.COMPLETED:
+            return check
         check.status = CheckStatus.FAILED
         check.error_detail = error_detail[:500]
         check.completed_at = dt.datetime.now(dt.timezone.utc)
@@ -78,15 +84,24 @@ class CheckRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_for_user(self, check_id: int, telegram_id: int) -> Check | None:
+        stmt = (
+            select(Check)
+            .join(Document)
+            .where(Check.id == check_id, Document.user.has(telegram_id=telegram_id))
+            .options(selectinload(Check.findings))
+        )
+        return (await self.session.execute(stmt)).scalar_one_or_none()
+
     async def count_checks_today(self, telegram_id: int) -> int:
         today_start = dt.datetime.now(dt.timezone.utc).replace(
             hour=0, minute=0, second=0, microsecond=0
         )
         stmt = (
-            select(Check)
+            select(func.count(Check.id))
             .join(Document, Check.document_id == Document.id)
             .where(Document.user.has(telegram_id=telegram_id))
             .where(Check.created_at >= today_start)
         )
         result = await self.session.execute(stmt)
-        return len(result.scalars().all())
+        return result.scalar_one()

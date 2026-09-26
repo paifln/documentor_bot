@@ -3,16 +3,20 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import db_session
+from app.api.dependencies import authenticated_user, db_session
 from app.database.repositories.check_repository import CheckRepository
 
 router = APIRouter(tags=["checks"])
 
 
 @router.get("/checks/{check_id}")
-async def get_check(check_id: int, session: AsyncSession = Depends(db_session)) -> dict:
+async def get_check(
+    check_id: int,
+    session: AsyncSession = Depends(db_session),
+    telegram_id: int = Depends(authenticated_user),
+) -> dict:
     repo = CheckRepository(session)
-    check = await repo.get_with_findings(check_id)
+    check = await repo.get_for_user(check_id, telegram_id)
     if check is None:
         raise HTTPException(status_code=404, detail="Check not found")
 
@@ -20,6 +24,7 @@ async def get_check(check_id: int, session: AsyncSession = Depends(db_session)) 
         "id": check.id,
         "status": check.status.value,
         "score": check.score,
+        "result": check.result_snapshot,
         "summary": {
             "critical": check.critical_count,
             "errors": check.error_count,

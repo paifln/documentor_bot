@@ -6,7 +6,6 @@ from app.rules.models import (
     FontRule,
     HeadingsRule,
     MarginsRule,
-    PageRule,
     ParagraphRule,
     ReferencesRule,
     RulePreset,
@@ -14,6 +13,18 @@ from app.rules.models import (
     StructureRule,
 )
 from tests.fixtures import generate_test_docs as gen
+
+
+@pytest.fixture(autouse=True)
+def private_storage(tmp_path, monkeypatch):
+    """Never let cleanup/report tests touch the developer's data directories."""
+    from app.config.settings import get_settings
+
+    settings = get_settings()
+    for name in ("storage_dir", "reports_dir"):
+        directory = tmp_path / name
+        directory.mkdir()
+        monkeypatch.setattr(settings, name, directory)
 
 
 @pytest.fixture(scope="session")

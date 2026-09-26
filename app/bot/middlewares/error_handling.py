@@ -23,10 +23,10 @@ class ErrorHandlingMiddleware(BaseMiddleware):
         try:
             return await handler(event, data)
         except CourseworkCheckerError as exc:
-            logger.error("handled_application_error", detail=exc.detail)
+            logger.error("handled_application_error", code=exc.code)
             await _reply_safe(event, exc.localized_message(_lang_from(data)))
         except Exception as exc:  # noqa: BLE001
-            logger.error("unhandled_exception", error=str(exc), exc_info=True)
+            logger.error("unhandled_exception", error_type=type(exc).__name__)
             await _reply_safe(event, t("error.internal", _lang_from(data)))
 
 
@@ -35,15 +35,16 @@ def _lang_from(data: dict[str, Any]) -> str:
     `data` dict in place, so `db_user` is present here too even though this
     middleware was entered before DbSessionMiddleware ran (see main.py
     registration order) — the exception unwinds back through the same dict."""
-    db_user = data.get("db_user")
-    lang = getattr(db_user, "language", None) if db_user else None
-    return lang or "ru"
+    return data.get("user_language", "ru")
 
 
 async def _reply_safe(event: TelegramObject, text: str) -> None:
-    message = getattr(event, "message", None) or event
+    callback = getattr(event, "callback_query", None)
+    message = getattr(event, "message", None) or getattr(callback, "message", None) or event
     try:
         if hasattr(message, "answer"):
             await message.answer(text)
+        if callback is not None:
+            await callback.answer()
     except Exception:  # noqa: BLE001 - never let error reporting itself crash the bot
         pass

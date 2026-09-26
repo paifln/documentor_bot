@@ -7,7 +7,9 @@ from app.i18n import t
 from app.rules.models import RulePreset
 
 
-def validate_margins(document: ParsedDocument, preset: RulePreset, lang: str = "ru") -> list[Finding]:
+def validate_margins(
+    document: ParsedDocument, preset: RulePreset, lang: str = "ru"
+) -> list[Finding]:
     findings: list[Finding] = []
     page = document.page
     rule = preset.margins

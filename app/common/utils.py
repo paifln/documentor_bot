@@ -34,7 +34,11 @@ def sanitize_display_name(name: str) -> str:
     """Sanitize a filename for *display* purposes only (never for filesystem use)."""
     normalized = unicodedata.normalize("NFKC", name)
     normalized = _UNSAFE_FILENAME_CHARS.sub("_", normalized)
-    return normalized[:120]
+    suffix = Path(normalized).suffix
+    if len(suffix) > 16:
+        suffix = ""
+    stem = normalized[: -len(suffix)] if suffix else normalized
+    return stem[: 120 - len(suffix)] + suffix
 
 
 def mm_to_emu(mm: float) -> int:

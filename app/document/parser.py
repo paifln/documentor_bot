@@ -15,20 +15,22 @@ from docx.document import Document as DocxDocument
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.table import Table
+from docx.text.paragraph import Paragraph
 
 from app.common.exceptions import CorruptedDocumentError, TextExtractionError
 from app.common.utils import emu_to_cm, emu_to_mm
 from app.document import ooxml
+from app.document.effective import paragraph_format, run_font, style_chain
 
 # Matches localized *displayed* names of Word's built-in heading styles.
 # Used only as a last-resort fallback (see _paragraph_outline_level) — the
 # w:outlineLvl / style_id checks above cover the vast majority of real
 # documents regardless of the Word UI language they were authored in.
 _HEADING_STYLE_NAME_PATTERNS = [
-    r"^heading\s*0*([1-9])$",       # English: "Heading 1"
-    r"^заголовок\s*0*([1-9])$",     # Russian: "Заголовок 1"
-    r"^тақырып\s*0*([1-9])$",       # Kazakh: "Тақырып 1"
-    r"^такырып\s*0*([1-9])$",       # Kazakh, no diacritics (some templates)
+    r"^heading\s*0*([1-9])$",  # English: "Heading 1"
+    r"^заголовок\s*0*([1-9])$",  # Russian: "Заголовок 1"
+    r"^тақырып\s*0*([1-9])$",  # Kazakh: "Тақырып 1"
+    r"^такырып\s*0*([1-9])$",  # Kazakh, no diacritics (some templates)
 ]
 
 _ALIGNMENT_MAP = {
@@ -66,6 +68,9 @@ class ParagraphInfo:
     left_indent_cm: float | None
     right_indent_cm: float | None
     runs: list[RunInfo] = field(default_factory=list)
+    in_table: bool = False
+    page_break_before: bool = False
+    is_numbered: bool = False
 
     @property
     def is_heading(self) -> bool:
@@ -112,6 +117,7 @@ class ParsedDocument:
     image_count: int
     font_usage: dict[tuple[str | None, float | None], int]  # (name, size) -> char count
     estimated_page_count: int
+    pages: list[SectionPageInfo] = field(default_factory=list)
 
     @property
     def full_text(self) -> str:
@@ -157,6 +163,11 @@ def _paragraph_outline_level(paragraph) -> int | None:
             if val is not None:
                 return int(val)
 
+    for inherited in style_chain(paragraph.style):
+        props = inherited.element.pPr
+        outline = props.find(qn("w:outlineLvl")) if props is not None else None
+        if outline is not None:
+            return int(outline.get(qn("w:val")))
     style = paragraph.style
     if style is not None:
         style_id = getattr(style, "style_id", None) or ""
@@ -181,32 +192,33 @@ def _spacing_pt(value) -> float | None:
 
 
 def _line_spacing(paragraph) -> tuple[float | None, str | None]:
-    pf = paragraph.paragraph_format
+    pf = paragraph_format(paragraph)
     rule = pf.line_spacing_rule
     if pf.line_spacing is None:
-        return None, str(rule) if rule else None
+        return 1.0, "SINGLE"
     # For MULTIPLE rule, line_spacing is a float multiplier (e.g. 1.5).
     # For EXACT/AT_LEAST it's a Length; normalize to points in that case.
     if hasattr(pf.line_spacing, "pt"):
-        return round(pf.line_spacing.pt, 2), str(rule) if rule else None
-    return float(pf.line_spacing), str(rule) if rule else None
+        return round(pf.line_spacing.pt, 2), str(rule) if rule is not None else None
+    return float(pf.line_spacing), str(rule) if rule is not None else None
 
 
-def _parse_paragraph(paragraph, index: int) -> ParagraphInfo:
-    pf = paragraph.paragraph_format
+def _parse_paragraph(paragraph, index: int, in_table: bool = False) -> ParagraphInfo:
+    pf = paragraph_format(paragraph)
     line_spacing, line_spacing_rule = _line_spacing(paragraph)
 
     runs = [
         RunInfo(
             text=r.text,
-            font_name=r.font.name,
-            font_size_pt=(r.font.size.pt if r.font.size else None),
-            bold=bool(r.bold),
-            italic=bool(r.italic),
-            underline=bool(r.underline),
+            font_name=font.name,
+            font_size_pt=(font.size.pt if font.size is not None else None),
+            bold=bool(font.bold),
+            italic=bool(font.italic),
+            underline=bool(font.underline),
             color_rgb=_run_color(r),
         )
         for r in paragraph.runs
+        for font in [run_font(r, paragraph)]
     ]
 
     return ParagraphInfo(
@@ -214,7 +226,7 @@ def _parse_paragraph(paragraph, index: int) -> ParagraphInfo:
         text=paragraph.text,
         style_name=paragraph.style.name if paragraph.style else "Normal",
         outline_level=_paragraph_outline_level(paragraph),
-        alignment=_ALIGNMENT_MAP.get(paragraph.alignment, "left"),
+        alignment=_ALIGNMENT_MAP.get(pf.alignment, "left"),
         line_spacing=line_spacing,
         line_spacing_rule=line_spacing_rule,
         space_before_pt=_spacing_pt(pf.space_before),
@@ -223,11 +235,16 @@ def _parse_paragraph(paragraph, index: int) -> ParagraphInfo:
         left_indent_cm=(emu_to_cm(pf.left_indent) if pf.left_indent else None),
         right_indent_cm=(emu_to_cm(pf.right_indent) if pf.right_indent else None),
         runs=runs,
+        in_table=in_table,
+        page_break_before=bool(pf.page_break_before),
+        is_numbered=any(
+            x is not None and x.find(qn("w:numPr")) is not None
+            for x in [paragraph._p.pPr, *[st.element.pPr for st in style_chain(paragraph.style)]]
+        ),
     )
 
 
-def _parse_page_info(document: DocxDocument) -> SectionPageInfo:
-    section = document.sections[0]
+def _parse_page_info(section) -> SectionPageInfo:
     orientation = "landscape" if section.orientation == 1 else "portrait"
     return SectionPageInfo(
         page_width_mm=emu_to_mm(section.page_width),
@@ -256,14 +273,22 @@ def parse_docx(path: Path) -> ParsedDocument:
         raise CorruptedDocumentError(f"python-docx failed to open file: {exc}") from exc
 
     try:
-        paragraphs = [_parse_paragraph(p, i) for i, p in enumerate(document.paragraphs)]
+        paragraphs = []
+        previous_break = False
+        for element in document.element.body.iter(qn("w:p")):
+            in_table = any(a.tag == qn("w:tc") for a in element.iterancestors())
+            paragraph = _parse_paragraph(Paragraph(element, document), len(paragraphs), in_table)
+            paragraph.page_break_before |= previous_break
+            previous_break = bool(element.xpath('.//w:br[@w:type="page"]'))
+            paragraphs.append(paragraph)
     except Exception as exc:  # noqa: BLE001
         raise TextExtractionError(f"failed extracting paragraphs: {exc}") from exc
 
     if not any(p.text.strip() for p in paragraphs):
         raise TextExtractionError("document contains no extractable text")
 
-    page = _parse_page_info(document)
+    pages = [_parse_page_info(section) for section in document.sections]
+    page = pages[0]
 
     try:
         has_header, has_footer = ooxml.section_has_header_footer(path)
@@ -283,6 +308,7 @@ def parse_docx(path: Path) -> ParsedDocument:
         path=path,
         paragraphs=paragraphs,
         page=page,
+        pages=pages,
         has_header=has_header,
         has_footer=has_footer,
         table_count=table_count,

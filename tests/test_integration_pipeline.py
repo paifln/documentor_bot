@@ -23,7 +23,8 @@ async def test_full_pipeline_correct_document(correct_docx, sample_preset):
     result = await pipeline.run(correct_docx, sample_preset, on_progress=on_progress)
 
     assert result.score > 0
-    assert result.max_score == 100.0
+    assert result.max_score == 50.0  # offline mock leaves AI categories unevaluated
+    assert result.ai_analysis_available is False
     assert seen_stages == ["structure", "formatting", "text", "ai", "report"]
     assert any(f.rule_id == "font.main" for f in result.findings)
 

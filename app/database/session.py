@@ -48,6 +48,8 @@ async_session_factory = async_sessionmaker(engine, expire_on_commit=False, class
 async def init_models() -> None:
     """Create tables directly for local/dev/SQLite use. Production deployments
     should use Alembic migrations (see migrations/) instead of this."""
+    from app.database import models  # noqa: F401
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

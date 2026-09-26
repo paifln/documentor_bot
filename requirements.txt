@@ -26,11 +26,4 @@ openai==1.51.0
 PyYAML==6.0.2
 structlog==24.4.0
 python-dotenv==1.0.1
-tenacity==9.0.0
 Pillow==10.4.0
-
-# dev / tests
-pytest==8.3.3
-pytest-asyncio==0.24.0
-pytest-mock==3.14.0
-faker==28.4.1

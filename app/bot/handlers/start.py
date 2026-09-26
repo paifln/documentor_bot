@@ -73,7 +73,9 @@ async def start_check_flow(callback: CallbackQuery, state: FSMContext, db_user: 
 _WORK_TYPE_ORDER = ["coursework", "diploma", "report", "essay"]
 
 
-async def _ask_work_type(callback: CallbackQuery, state: FSMContext, institution: str, lang: str) -> None:
+async def _ask_work_type(
+    callback: CallbackQuery, state: FSMContext, institution: str, lang: str
+) -> None:
     registry = get_preset_registry()
     presets = registry.list_for_institution(institution)
     work_types = sorted(
@@ -87,7 +89,9 @@ async def _ask_work_type(callback: CallbackQuery, state: FSMContext, institution
         return
 
     await state.set_state(CheckFlowStates.choosing_work_type)
-    await callback.message.edit_text(t("ask_work_type", lang), reply_markup=work_type_keyboard(work_types, lang))
+    await callback.message.edit_text(
+        t("ask_work_type", lang), reply_markup=work_type_keyboard(work_types, lang)
+    )
     await callback.answer()
 
 
@@ -99,7 +103,9 @@ async def choose_work_type(callback: CallbackQuery, state: FSMContext, db_user: 
 
     registry = get_preset_registry()
     matches = [
-        p for p in registry.list_for_institution(data["institution"]) if p.work_type.value == work_type
+        p
+        for p in registry.list_for_institution(data["institution"])
+        if p.work_type.value == work_type
     ]
     if not matches:
         await callback.message.answer(t("error.preset_not_found", lang))

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import DocumentStatus
@@ -24,6 +23,10 @@ class DocumentRepository:
 
     async def mark_status(self, document: Document, status: DocumentStatus) -> None:
         document.status = status
+        if status == DocumentStatus.DELETED:
+            import datetime as dt
+
+            document.deleted_at = dt.datetime.now(dt.timezone.utc)
         await self.session.flush()
 
     async def get(self, document_id: int) -> Document | None:

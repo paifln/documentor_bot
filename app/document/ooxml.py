@@ -30,7 +30,7 @@ def get_document_xml_tree(docx_path: Path) -> etree._Element:
     data = read_part(docx_path, "word/document.xml")
     if data is None:
         raise FileNotFoundError("word/document.xml not found in archive")
-    return etree.fromstring(data)
+    return etree.fromstring(data, etree.XMLParser(resolve_entities=False, no_network=True))
 
 
 def section_has_header_footer(docx_path: Path) -> tuple[bool, bool]:

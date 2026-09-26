@@ -8,12 +8,19 @@ from app.i18n import t
 from app.rules.models import RulePreset
 
 
-def validate_paragraphs(document: ParsedDocument, preset: RulePreset, lang: str = "ru") -> list[Finding]:
+def validate_paragraphs(
+    document: ParsedDocument, preset: RulePreset, lang: str = "ru"
+) -> list[Finding]:
     findings: list[Finding] = []
     rule = preset.paragraph
     body = body_paragraphs(document)
 
-    bad_indent = [p for p in body if abs((p.first_line_indent_cm or 0.0) - rule.first_line_indent_cm) > rule.indent_tolerance_cm]
+    bad_indent = [
+        p
+        for p in body
+        if abs((p.first_line_indent_cm or 0.0) - rule.first_line_indent_cm)
+        > rule.indent_tolerance_cm
+    ]
 
     if bad_indent:
         first = bad_indent[0]

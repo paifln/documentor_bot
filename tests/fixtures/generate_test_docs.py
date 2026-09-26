@@ -52,7 +52,10 @@ _BODY_PARAGRAPHS = {
     ),
 }
 
-_REFERENCES = [f"{i}. Автор {i}. Название работы {i}. Издательство, 20{10+i%9}. — {100+i} с." for i in range(1, 16)]
+_REFERENCES = [
+    f"{i}. Автор {i}. Название работы {i}. Издательство, 20{10 + i % 9}. — {100 + i} с."
+    for i in range(1, 16)
+]
 
 
 def _set_page_and_margins(document, top=20, bottom=20, left=30, right=10):
@@ -70,7 +73,9 @@ def _add_heading(document, text, level=1):
     return heading
 
 
-def _add_body_paragraph(document, text, font_name="Times New Roman", size_pt=14, indent_cm=1.25, spacing=1.5):
+def _add_body_paragraph(
+    document, text, font_name="Times New Roman", size_pt=14, indent_cm=1.25, spacing=1.5
+):
     p = document.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     fmt = p.paragraph_format

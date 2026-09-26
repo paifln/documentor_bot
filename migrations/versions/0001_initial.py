@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-09-10
 
 """
+
 from __future__ import annotations
 
 from typing import Sequence, Union
@@ -38,7 +39,9 @@ def upgrade() -> None:
         sa.Column("file_size", sa.BigInteger(), nullable=False),
         sa.Column(
             "status",
-            sa.Enum("received", "validated", "parsed", "rejected", "deleted", name="documentstatus"),
+            sa.Enum(
+                "received", "validated", "parsed", "rejected", "deleted", name="documentstatus"
+            ),
             nullable=False,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
@@ -76,8 +79,14 @@ def upgrade() -> None:
         sa.Column(
             "category",
             sa.Enum(
-                "formatting", "structure", "language", "style", "content",
-                "references", "system", name="findingcategory",
+                "formatting",
+                "structure",
+                "language",
+                "style",
+                "content",
+                "references",
+                "system",
+                name="findingcategory",
             ),
             nullable=False,
         ),

@@ -33,12 +33,18 @@ def validate_headings(
     # Приложение are conventionally LEFT UNNUMBERED — checking them here
     # would flag essentially every correctly-formatted document.
     _CONVENTIONALLY_UNNUMBERED = {
-        "introduction", "conclusion", "references", "abstract", "appendix", "content_table",
+        "introduction",
+        "conclusion",
+        "references",
+        "abstract",
+        "appendix",
+        "content_table",
     }
 
     if rule.require_numbering:
         unnumbered = [
-            h for h in structure.headings
+            h
+            for h in structure.headings
             if h.level <= 2 and not h.numbering and h.section_key not in _CONVENTIONALLY_UNNUMBERED
         ]
         if unnumbered:

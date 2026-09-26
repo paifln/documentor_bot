@@ -67,8 +67,8 @@ class UserRole(StrEnum):
 class WorkType(StrEnum):
     COURSEWORK = "coursework"
     DIPLOMA = "diploma"
-    REPORT = "report"        # отчёт по практике
-    ESSAY = "essay"          # реферат
+    REPORT = "report"  # отчёт по практике
+    ESSAY = "essay"  # реферат
 
 
 class PageOrientation(StrEnum):

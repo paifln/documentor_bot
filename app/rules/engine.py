@@ -10,7 +10,7 @@ Finding text is generated in — see app/i18n/translations.py.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from app.common.models import Finding
 from app.document import structure as structure_module
@@ -37,11 +37,18 @@ class RuleEngineResult:
 class RuleEngine:
     """Stateless orchestrator — safe to reuse across requests."""
 
-    def run(self, document: ParsedDocument, preset: RulePreset, lang: str = "ru") -> RuleEngineResult:
+    def run(
+        self, document: ParsedDocument, preset: RulePreset, lang: str = "ru"
+    ) -> RuleEngineResult:
         findings: list[Finding] = []
 
-        findings += page_validator.validate_page(document, preset, lang)
-        findings += margins_validator.validate_margins(document, preset, lang)
+        for index, page in enumerate(document.pages or [document.page], 1):
+            section = replace(document, page=page)
+            checks = page_validator.validate_page(section, preset, lang)
+            checks += margins_validator.validate_margins(section, preset, lang)
+            for finding in checks:
+                finding.location = f"Section {index}: {finding.location}"
+            findings += checks
         findings += page_validator.validate_headers_footers(document, preset, lang)
 
         findings += font_validator.validate_font(document, preset, lang)
@@ -60,9 +67,20 @@ class RuleEngine:
         findings += structure_findings
 
         sections_text = structure_module.split_into_logical_sections(document, struct_report)
+        from app.rules.validators.completeness import validate_completeness
+
+        findings += validate_completeness(document, struct_report, sections_text, preset, lang)
         references_text = sections_text.get("references", "")
-        findings += references_validator.validate_references(references_text, struct_report, preset, lang)
-        findings += references_validator.validate_in_text_citations(document.full_text, preset, lang)
+        findings += references_validator.validate_references(
+            references_text, struct_report, preset, lang
+        )
+        findings += references_validator.validate_in_text_citations(
+            "\n".join(
+                v for k, v in sections_text.items() if k not in {"references", "content_table"}
+            ),
+            preset,
+            lang,
+        )
 
         return RuleEngineResult(
             findings=findings,

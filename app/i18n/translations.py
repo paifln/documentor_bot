@@ -29,7 +29,6 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "✅ Интерфейс тілі: Қазақша",
         "en": "✅ Interface language: English",
     },
-
     # --- welcome / help ---
     "welcome": {
         "ru": (
@@ -94,14 +93,20 @@ MESSAGES: dict[str, dict[str, str]] = {
             "style, content). AI results are advisory, not authoritative."
         ),
     },
-
     # --- main menu ---
-    "menu.check_new": {"ru": "📄 Проверить работу", "kk": "📄 Жұмысты тексеру", "en": "📄 Check my work"},
-    "menu.history": {"ru": "📋 История проверок", "kk": "📋 Тексерулер тарихы", "en": "📋 Check history"},
+    "menu.check_new": {
+        "ru": "📄 Проверить работу",
+        "kk": "📄 Жұмысты тексеру",
+        "en": "📄 Check my work",
+    },
+    "menu.history": {
+        "ru": "📋 История проверок",
+        "kk": "📋 Тексерулер тарихы",
+        "en": "📋 Check history",
+    },
     "menu.settings": {"ru": "⚙️ Настройки", "kk": "⚙️ Баптаулар", "en": "⚙️ Settings"},
     "menu.help": {"ru": "❓ Помощь", "kk": "❓ Көмек", "en": "❓ Help"},
     "menu.language": {"ru": "🌐 Язык", "kk": "🌐 Тіл", "en": "🌐 Language"},
-
     # --- work type selection ---
     "ask_work_type": {
         "ru": "📚 Выберите тип работы:",
@@ -110,7 +115,11 @@ MESSAGES: dict[str, dict[str, str]] = {
     },
     "work_type.coursework": {"ru": "📚 Курсовая", "kk": "📚 Курстық жұмыс", "en": "📚 Coursework"},
     "work_type.diploma": {"ru": "🎓 Дипломная", "kk": "🎓 Дипломдық жұмыс", "en": "🎓 Thesis"},
-    "work_type.report": {"ru": "📝 Отчёт по практике", "kk": "📝 Практика есебі", "en": "📝 Practice report"},
+    "work_type.report": {
+        "ru": "📝 Отчёт по практике",
+        "kk": "📝 Практика есебі",
+        "en": "📝 Practice report",
+    },
     "work_type.essay": {"ru": "📃 Реферат", "kk": "📃 Реферат", "en": "📃 Essay"},
     "work_type_chosen": {
         "ru": "✅ Выбрано: {preset_name}.\n\n📎 Теперь отправьте файл .docx для проверки.",
@@ -127,7 +136,6 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "❌ .docx форматындағы файлды жіберіңіз.",
         "en": "❌ Please send a file in .docx format.",
     },
-
     # --- document upload flow ---
     "file_received": {
         "ru": "📄 Файл получен.\n\nНазвание: {filename}\nРазмер: {size} MB",
@@ -164,18 +172,47 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "📊 Қорытынды есепті қалыптастырып жатырмын…",
         "en": "📊 Building the final report…",
     },
-
+    "delivery.sent": {
+        "ru": "✅ Проверка завершена. Отчёт отправлен ниже.",
+        "kk": "✅ Тексеру аяқталды. Есеп төменде жіберілді.",
+        "en": "✅ Check completed. The report has been sent below.",
+    },
+    "delivery.failed": {
+        "ru": "⚠️ Проверка завершена, но отправить PDF не удалось. Результат сохранён. Обратитесь к администратору для повторной отправки.",
+        "kk": "⚠️ Тексеру аяқталды, бірақ PDF жіберілмеді. Нәтиже сақталды. Қайта жіберу үшін әкімшіге хабарласыңыз.",
+        "en": "⚠️ Check completed, but PDF delivery failed. The result is saved. Contact the administrator to retry delivery.",
+    },
     # --- results ---
-    "summary.title": {"ru": "✅ Проверка завершена.", "kk": "✅ Тексеру аяқталды.", "en": "✅ Check completed."},
+    "summary.title": {
+        "ru": "✅ Проверка завершена.",
+        "kk": "✅ Тексеру аяқталды.",
+        "en": "✅ Check completed.",
+    },
     "summary.score": {
         "ru": "Результат: {score:.0f}/{max_score:.0f}",
         "kk": "Нәтиже: {score:.0f}/{max_score:.0f}",
         "en": "Score: {score:.0f}/{max_score:.0f}",
     },
-    "summary.critical": {"ru": "🔴 Критические ошибки: {n}", "kk": "🔴 Сыни қателер: {n}", "en": "🔴 Critical errors: {n}"},
-    "summary.errors": {"ru": "🟠 Ошибки оформления: {n}", "kk": "🟠 Ресімдеу қателері: {n}", "en": "🟠 Formatting errors: {n}"},
-    "summary.warnings": {"ru": "🟡 Замечания: {n}", "kk": "🟡 Ескертулер: {n}", "en": "🟡 Warnings: {n}"},
-    "summary.passed": {"ru": "🟢 Соответствует требованиям: {n}", "kk": "🟢 Талаптарға сай: {n}", "en": "🟢 Meets requirements: {n}"},
+    "summary.critical": {
+        "ru": "🔴 Критические ошибки: {n}",
+        "kk": "🔴 Сыни қателер: {n}",
+        "en": "🔴 Critical errors: {n}",
+    },
+    "summary.errors": {
+        "ru": "🟠 Ошибки оформления: {n}",
+        "kk": "🟠 Ресімдеу қателері: {n}",
+        "en": "🟠 Formatting errors: {n}",
+    },
+    "summary.warnings": {
+        "ru": "🟡 Замечания: {n}",
+        "kk": "🟡 Ескертулер: {n}",
+        "en": "🟡 Warnings: {n}",
+    },
+    "summary.passed": {
+        "ru": "🟢 Соответствует требованиям: {n}",
+        "kk": "🟢 Талаптарға сай: {n}",
+        "en": "🟢 Meets requirements: {n}",
+    },
     "summary.ai_partial": {
         "ru": "⚠️ AI-анализ текста выполнен частично.\n\n",
         "kk": "⚠️ Мәтіннің AI талдауы жартылай орындалды.\n\n",
@@ -191,8 +228,16 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "📊 Санаттар бойынша нәтиже:",
         "en": "📊 Results by category:",
     },
-    "results.total": {"ru": "Итого: {score:.0f}/{max_score:.0f}", "kk": "Барлығы: {score:.0f}/{max_score:.0f}", "en": "Total: {score:.0f}/{max_score:.0f}"},
-    "errors.title": {"ru": "❌ Найденные ошибки:\n", "kk": "❌ Табылған қателер:\n", "en": "❌ Errors found:\n"},
+    "results.total": {
+        "ru": "Итого: {score:.0f}/{max_score:.0f}",
+        "kk": "Барлығы: {score:.0f}/{max_score:.0f}",
+        "en": "Total: {score:.0f}/{max_score:.0f}",
+    },
+    "errors.title": {
+        "ru": "❌ Найденные ошибки:\n",
+        "kk": "❌ Табылған қателер:\n",
+        "en": "❌ Errors found:\n",
+    },
     "errors.none": {
         "ru": "🎉 Критических ошибок и ошибок оформления не обнаружено.",
         "kk": "🎉 Сыни және ресімдеу қателері табылған жоқ.",
@@ -203,7 +248,11 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "…тағы {n} қате. Толық тізім — PDF есепте.",
         "en": "…and {n} more errors. See the full list in the PDF report.",
     },
-    "recommendations.title": {"ru": "💡 Рекомендации по исправлению:\n", "kk": "💡 Түзету бойынша ұсыныстар:\n", "en": "💡 Recommendations:\n"},
+    "recommendations.title": {
+        "ru": "💡 Рекомендации по исправлению:\n",
+        "kk": "💡 Түзету бойынша ұсыныстар:\n",
+        "en": "💡 Recommendations:\n",
+    },
     "recommendations.none": {
         "ru": "На данный момент дополнительных рекомендаций нет.",
         "kk": "Қазіргі уақытта қосымша ұсыныстар жоқ.",
@@ -214,17 +263,32 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "\n…тағы {n} ұсыныс. Толық тізім — PDF есепте.",
         "en": "\n…and {n} more recommendations. See the full list in the PDF report.",
     },
-    "confidence_label": {"ru": "Уверенность AI: {pct}%", "kk": "AI сенімділігі: {pct}%", "en": "AI confidence: {pct}%"},
+    "confidence_label": {
+        "ru": "Уверенность AI: {pct}%",
+        "kk": "AI сенімділігі: {pct}%",
+        "en": "AI confidence: {pct}%",
+    },
     "source.rule_engine": {
         "ru": "Источник: автоматическая проверка документа",
         "kk": "Дереккөз: құжатты автоматты тексеру",
         "en": "Source: automated document check",
     },
-    "source.ai": {"ru": "Источник: AI-анализ", "kk": "Дереккөз: AI талдауы", "en": "Source: AI analysis"},
-
+    "source.ai": {
+        "ru": "Источник: AI-анализ",
+        "kk": "Дереккөз: AI талдауы",
+        "en": "Source: AI analysis",
+    },
     # --- history / settings ---
-    "history.empty": {"ru": "📋 История проверок пуста.", "kk": "📋 Тексерулер тарихы бос.", "en": "📋 Your check history is empty."},
-    "history.title": {"ru": "📋 История проверок:\n", "kk": "📋 Тексерулер тарихы:\n", "en": "📋 Check history:\n"},
+    "history.empty": {
+        "ru": "📋 История проверок пуста.",
+        "kk": "📋 Тексерулер тарихы бос.",
+        "en": "📋 Your check history is empty.",
+    },
+    "history.title": {
+        "ru": "📋 История проверок:\n",
+        "kk": "📋 Тексерулер тарихы:\n",
+        "en": "📋 Check history:\n",
+    },
     "settings.text": {
         "ru": (
             "⚙️ Настройки\n\n"
@@ -258,7 +322,6 @@ MESSAGES: dict[str, dict[str, str]] = {
             "the main menu; to change the language, tap “🌐 Language”."
         ),
     },
-
     # --- errors / limits ---
     "error.daily_limit": {
         "ru": "⚠️ Вы достигли дневного лимита проверок. Попробуйте завтра.",
@@ -330,29 +393,37 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "⚠️ PDF есеп енді қолжетімді емес.",
         "en": "⚠️ The PDF report is no longer available.",
     },
-    "pdf_caption": {"ru": "📄 Подробный PDF-отчёт", "kk": "📄 Толық PDF есеп", "en": "📄 Detailed PDF report"},
-
+    "pdf_caption": {
+        "ru": "📄 Подробный PDF-отчёт",
+        "kk": "📄 Толық PDF есеп",
+        "en": "📄 Detailed PDF report",
+    },
     # --- result menu buttons ---
     "btn.result_scores": {"ru": "📊 Результат", "kk": "📊 Нәтиже", "en": "📊 Score"},
     "btn.result_errors": {"ru": "❌ Ошибки", "kk": "❌ Қателер", "en": "❌ Errors"},
-    "btn.result_recommendations": {"ru": "💡 Рекомендации", "kk": "💡 Ұсыныстар", "en": "💡 Recommendations"},
+    "btn.result_recommendations": {
+        "ru": "💡 Рекомендации",
+        "kk": "💡 Ұсыныстар",
+        "en": "💡 Recommendations",
+    },
     "btn.result_pdf": {"ru": "📄 Скачать PDF", "kk": "📄 PDF жүктеу", "en": "📄 Download PDF"},
-    "btn.result_new_check": {"ru": "🔄 Проверить другой файл", "kk": "🔄 Басқа файлды тексеру", "en": "🔄 Check another file"},
-
+    "btn.result_new_check": {
+        "ru": "🔄 Проверить другой файл",
+        "kk": "🔄 Басқа файлды тексеру",
+        "en": "🔄 Check another file",
+    },
     # --- admin ---
     "admin.only": {
         "ru": "⛔ Эта команда доступна только администраторам.",
         "kk": "⛔ Бұл команда тек әкімшілерге қолжетімді.",
         "en": "⛔ This command is only available to administrators.",
     },
-
     # --- category labels (used in results + PDF table) ---
     "category.formatting": {"ru": "Оформление", "kk": "Ресімдеу", "en": "Formatting"},
     "category.structure": {"ru": "Структура", "kk": "Құрылым", "en": "Structure"},
     "category.language": {"ru": "Язык", "kk": "Тіл", "en": "Language"},
     "category.style": {"ru": "Стиль", "kk": "Стиль", "en": "Style"},
     "category.content": {"ru": "Содержание", "kk": "Мазмұны", "en": "Content"},
-
     # --- PDF report ---
     "pdf.title": {"ru": "ОТЧЁТ ПРОВЕРКИ", "kk": "ТЕКСЕРУ ЕСЕБІ", "en": "REVIEW REPORT"},
     "pdf.file": {"ru": "Файл", "kk": "Файл", "en": "File"},
@@ -360,22 +431,38 @@ MESSAGES: dict[str, dict[str, str]] = {
     "pdf.work_type": {"ru": "Тип работы", "kk": "Жұмыс түрі", "en": "Work type"},
     "pdf.date": {"ru": "Дата проверки", "kk": "Тексеру күні", "en": "Check date"},
     "pdf.total": {"ru": "Итог", "kk": "Қорытынды", "en": "Total"},
-    "pdf.section1": {"ru": "1. ОБЩИЙ РЕЗУЛЬТАТ", "kk": "1. ЖАЛПЫ НӘТИЖЕ", "en": "1. OVERALL RESULT"},
+    "pdf.section1": {
+        "ru": "1. ОБЩИЙ РЕЗУЛЬТАТ",
+        "kk": "1. ЖАЛПЫ НӘТИЖЕ",
+        "en": "1. OVERALL RESULT",
+    },
     "pdf.table.category": {"ru": "Категория", "kk": "Санат", "en": "Category"},
     "pdf.table.points": {"ru": "Баллы", "kk": "Балл", "en": "Points"},
-    "pdf.section2": {"ru": "2. ОШИБКИ ОФОРМЛЕНИЯ", "kk": "2. РЕСІМДЕУ ҚАТЕЛЕРІ", "en": "2. FORMATTING ERRORS"},
+    "pdf.section2": {
+        "ru": "2. ОШИБКИ ОФОРМЛЕНИЯ",
+        "kk": "2. РЕСІМДЕУ ҚАТЕЛЕРІ",
+        "en": "2. FORMATTING ERRORS",
+    },
     "pdf.section2.none": {
         "ru": "Ошибок оформления не обнаружено.",
         "kk": "Ресімдеу қателері табылған жоқ.",
         "en": "No formatting errors were found.",
     },
-    "pdf.section3": {"ru": "3. СТРУКТУРА И ЛИТЕРАТУРА", "kk": "3. ҚҰРЫЛЫМ ЖӘНЕ ӘДЕБИЕТТЕР", "en": "3. STRUCTURE AND REFERENCES"},
+    "pdf.section3": {
+        "ru": "3. СТРУКТУРА И ЛИТЕРАТУРА",
+        "kk": "3. ҚҰРЫЛЫМ ЖӘНЕ ӘДЕБИЕТТЕР",
+        "en": "3. STRUCTURE AND REFERENCES",
+    },
     "pdf.section3.none": {
         "ru": "Замечаний по структуре не обнаружено.",
         "kk": "Құрылым бойынша ескертулер табылған жоқ.",
         "en": "No structural issues were found.",
     },
-    "pdf.section4": {"ru": "4. АНАЛИЗ ТЕКСТА (AI)", "kk": "4. МӘТІНДІ ТАЛДАУ (AI)", "en": "4. TEXT ANALYSIS (AI)"},
+    "pdf.section4": {
+        "ru": "4. АНАЛИЗ ТЕКСТА (AI)",
+        "kk": "4. МӘТІНДІ ТАЛДАУ (AI)",
+        "en": "4. TEXT ANALYSIS (AI)",
+    },
     "pdf.section4.partial": {
         "ru": "⚠️ AI-анализ текста выполнен частично или недоступен для части документа.",
         "kk": "⚠️ Мәтіннің AI талдауы ішінара орындалды немесе құжаттың бір бөлігі үшін қолжетімсіз.",
@@ -413,19 +500,29 @@ MESSAGES: dict[str, dict[str, str]] = {
             "review by your academic supervisor."
         ),
     },
-
     # --- rule engine: labels ---
     "label.left_margin": {"ru": "Левое поле", "kk": "Сол жақ жиек", "en": "Left margin"},
     "label.right_margin": {"ru": "Правое поле", "kk": "Оң жақ жиек", "en": "Right margin"},
     "label.top_margin": {"ru": "Верхнее поле", "kk": "Жоғарғы жиек", "en": "Top margin"},
     "label.bottom_margin": {"ru": "Нижнее поле", "kk": "Төменгі жиек", "en": "Bottom margin"},
-    "label.page_params": {"ru": "Параметры страницы", "kk": "Бет параметрлері", "en": "Page settings"},
+    "label.page_params": {
+        "ru": "Параметры страницы",
+        "kk": "Бет параметрлері",
+        "en": "Page settings",
+    },
     "label.headers_footers": {"ru": "Колонтитулы", "kk": "Колонтитулдар", "en": "Headers/footers"},
     "label.main_text": {"ru": "Основной текст", "kk": "Негізгі мәтін", "en": "Main text"},
-    "label.whole_document": {"ru": "По всему документу", "kk": "Бүкіл құжат бойынша", "en": "Throughout the document"},
-    "label.paragraphs": {"ru": "Абзацы №{list}", "kk": "{list}-абзацтар", "en": "Paragraphs #{list}"},
+    "label.whole_document": {
+        "ru": "По всему документу",
+        "kk": "Бүкіл құжат бойынша",
+        "en": "Throughout the document",
+    },
+    "label.paragraphs": {
+        "ru": "Абзацы №{list}",
+        "kk": "{list}-абзацтар",
+        "en": "Paragraphs #{list}",
+    },
     "label.introduction": {"ru": "Введение", "kk": "Кіріспе", "en": "Introduction"},
-
     # --- rule engine: page/margins ---
     "rule.page_size.error": {
         "ru": "Размер страницы не соответствует формату A4.",
@@ -467,7 +564,6 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "{label} талаптарға сәйкес келеді.",
         "en": "{label} meets the requirements.",
     },
-
     # --- rule engine: font ---
     "rule.font.undetected": {
         "ru": "Не удалось определить шрифт документа.",
@@ -494,7 +590,6 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "Көрсетілген абзацтарда қаріп талап етілгеннен өзгеше.",
         "en": "The font in the listed paragraphs differs from the required one.",
     },
-
     # --- rule engine: spacing / paragraphs ---
     "rule.line_spacing.error": {
         "ru": "Межстрочный интервал не соответствует требованиям.",
@@ -531,7 +626,6 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "Абзацтарда стандартты емес бүйір шегіністер табылды.",
         "en": "Non-standard side indents were found in paragraphs.",
     },
-
     # --- rule engine: headings / numbering ---
     "rule.heading.too_deep": {
         "ru": "Обнаружены заголовки глубже допустимого уровня ({max_level}).",
@@ -573,7 +667,6 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "«{heading}» тақырыбы тереңдік деңгейін өткізіп жіберді ({prev}-ден {curr}-ге дейін)",
         "en": "Heading “{heading}” skips a nesting level (from level {prev} to {curr})",
     },
-
     # --- rule engine: structure ---
     "rule.structure.section_present": {
         "ru": "Раздел «{label}» присутствует.",
@@ -595,7 +688,6 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "Міндетті емес «{label}» бөлімі табылмады.",
         "en": "The optional section “{label}” was not found.",
     },
-
     # --- rule engine: references ---
     "rule.references.missing": {
         "ru": "Список литературы отсутствует.",
@@ -632,25 +724,51 @@ MESSAGES: dict[str, dict[str, str]] = {
         "kk": "Мәтінде табылған дереккөздерге сілтемелер: {n}.",
         "en": "In-text citations found: {n}.",
     },
-
     # --- section labels used in structure/references messages ---
     "section.introduction": {"ru": "Введение", "kk": "Кіріспе", "en": "Introduction"},
-    "section.theoretical_part": {"ru": "Теоретическая часть", "kk": "Теориялық бөлім", "en": "Theoretical part"},
-    "section.practical_part": {"ru": "Практическая часть", "kk": "Практикалық бөлім", "en": "Practical part"},
+    "section.theoretical_part": {
+        "ru": "Теоретическая часть",
+        "kk": "Теориялық бөлім",
+        "en": "Theoretical part",
+    },
+    "section.practical_part": {
+        "ru": "Практическая часть",
+        "kk": "Практикалық бөлім",
+        "en": "Practical part",
+    },
     "section.main_body": {"ru": "Основная часть", "kk": "Негізгі бөлім", "en": "Main body"},
     "section.conclusion": {"ru": "Заключение", "kk": "Қорытынды", "en": "Conclusion"},
-    "section.references": {"ru": "Список литературы", "kk": "Әдебиеттер тізімі", "en": "List of references"},
+    "section.references": {
+        "ru": "Список литературы",
+        "kk": "Әдебиеттер тізімі",
+        "en": "List of references",
+    },
     "section.appendix": {"ru": "Приложение", "kk": "Қосымша", "en": "Appendix"},
     "section.abstract": {"ru": "Аннотация", "kk": "Аңдатпа", "en": "Abstract"},
-
     # --- AI: introduction structural elements ---
     "label.ai.relevance": {"ru": "актуальность", "kk": "өзектілік", "en": "relevance"},
-    "label.ai.problem": {"ru": "проблема исследования", "kk": "зерттеу мәселесі", "en": "research problem"},
+    "label.ai.problem": {
+        "ru": "проблема исследования",
+        "kk": "зерттеу мәселесі",
+        "en": "research problem",
+    },
     "label.ai.aim": {"ru": "цель", "kk": "мақсат", "en": "aim"},
     "label.ai.tasks": {"ru": "задачи", "kk": "міндеттер", "en": "tasks"},
-    "label.ai.object": {"ru": "объект исследования", "kk": "зерттеу объектісі", "en": "research object"},
-    "label.ai.subject": {"ru": "предмет исследования", "kk": "зерттеу пәні", "en": "research subject"},
-    "label.ai.methods": {"ru": "методы исследования", "kk": "зерттеу әдістері", "en": "research methods"},
+    "label.ai.object": {
+        "ru": "объект исследования",
+        "kk": "зерттеу объектісі",
+        "en": "research object",
+    },
+    "label.ai.subject": {
+        "ru": "предмет исследования",
+        "kk": "зерттеу пәні",
+        "en": "research subject",
+    },
+    "label.ai.methods": {
+        "ru": "методы исследования",
+        "kk": "зерттеу әдістері",
+        "en": "research methods",
+    },
     "ai.introduction.complete": {
         "ru": "Введение содержит все обязательные смысловые элементы.",
         "kk": "Кіріспеде барлық міндетті мазмұндық элементтер бар.",
@@ -667,6 +785,33 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "Make sure each element is explicitly stated in the introduction.",
     },
 }
+
+
+MESSAGES.update(
+    {
+        "not_evaluated": {"ru": "Не проверено", "kk": "Тексерілмеді", "en": "Not evaluated"},
+        "rule.min_words": {
+            "ru": "Раздел короче требуемого объёма.",
+            "kk": "Бөлім көлемі талаптан аз.",
+            "en": "Section is shorter than required.",
+        },
+        "rule.page_break": {
+            "ru": "Перед разделом нужен явный разрыв страницы.",
+            "kk": "Бөлім алдында бет үзілісі қажет.",
+            "en": "An explicit page break is required before this section.",
+        },
+        "rule.heading_bold": {
+            "ru": "Полужирный заголовок запрещён выбранными требованиями.",
+            "kk": "Талаптар бойынша қалың тақырыпқа рұқсат жоқ.",
+            "en": "Bold headings are not allowed by this preset.",
+        },
+        "history.deleted": {
+            "ru": "Удалено завершённых проверок: {n}. Активные проверки сохранены.",
+            "kk": "Аяқталған тексерулер жойылды: {n}. Белсенді тексерулер сақталды.",
+            "en": "Deleted completed checks: {n}. Active checks were retained.",
+        },
+    }
+)
 
 
 def t(key: str, lang: str | None = None, **kwargs) -> str:

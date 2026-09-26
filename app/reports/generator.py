@@ -88,7 +88,11 @@ def build_results_message(result: CheckResult, lang: str = "ru") -> str:
     lines = [t("results.category_scores_title", lang), ""]
     for cs in result.category_scores:
         label = t(_CATEGORY_KEYS.get(cs.category.value, cs.category.value), lang)
-        lines.append(f"{label}: {cs.earned_points:.0f}/{cs.max_points:.0f}")
+        lines.append(
+            f"{label}: {cs.earned_points:.0f}/{cs.max_points:.0f}"
+            if cs.evaluated
+            else f"{label}: {t('not_evaluated', lang)}"
+        )
     lines.append("")
     lines.append(t("results.total", lang, score=result.score, max_score=result.max_score))
     return "\n".join(lines)
@@ -96,8 +100,12 @@ def build_results_message(result: CheckResult, lang: str = "ru") -> str:
 
 def _finding_line(finding, lang: str) -> str:
     line = f"{finding.severity.emoji} {finding.message}"
+    if finding.location:
+        line += f"\n   {finding.location}"
     if finding.expected and finding.actual:
-        line += "\n   " + t("pdf.expected_actual", lang, expected=finding.expected, actual=finding.actual)
+        line += "\n   " + t(
+            "pdf.expected_actual", lang, expected=finding.expected, actual=finding.actual
+        )
     if finding.suggestion:
         line += f"\n   💡 {finding.suggestion}"
     if finding.confidence is not None:
@@ -114,11 +122,17 @@ def generate_pdf(
 ) -> Path:
     settings = get_settings()
     output_path = settings.reports_dir / f"report_{check_id}.pdf"
-    return build_pdf_report(
+    temporary = output_path.with_suffix(".tmp.pdf")
+    build_pdf_report(
         result,
-        output_path=output_path,
+        output_path=temporary,
         document_display_name=document_display_name,
         institution=preset.institution,
-        work_type_label=t(_WORK_TYPE_KEYS.get(preset.work_type.value, preset.work_type.value), lang),
+        work_type_label=t(
+            _WORK_TYPE_KEYS.get(preset.work_type.value, preset.work_type.value), lang
+        ),
         lang=lang,
     )
+
+    temporary.replace(output_path)
+    return output_path

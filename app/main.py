@@ -8,6 +8,7 @@ pipeline (spec §36: non-blocking event loop).
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -19,8 +20,11 @@ from app.bot.middlewares.db_session import DbSessionMiddleware
 from app.bot.middlewares.error_handling import ErrorHandlingMiddleware
 from app.config.logging import configure_logging, get_logger
 from app.config.settings import get_settings
-from app.database.session import init_models
+from app.database.session import engine
+from app.queue import close_arq_pool
 from app.security.files import SecureFileStore
+from app.services.dispatch import dispatch_loop
+from app.services.retention import purge_retained_data
 
 logger = get_logger(__name__)
 
@@ -28,7 +32,7 @@ logger = get_logger(__name__)
 async def _purge_loop(store: SecureFileStore, interval_seconds: int = 3600) -> None:
     while True:
         try:
-            store.purge_expired()
+            await purge_retained_data()
         except Exception as exc:  # noqa: BLE001
             logger.error("purge_loop_error", error=str(exc))
         await asyncio.sleep(interval_seconds)
@@ -43,7 +47,9 @@ async def main() -> None:
 
     # Convenience for local/dev SQLite; production uses Alembic migrations.
     if settings.database_url.startswith("sqlite"):
-        await init_models()
+        from app.database.bootstrap import upgrade_local_database
+
+        await asyncio.to_thread(upgrade_local_database)
 
     bot = Bot(token=settings.bot_token)
     dp = Dispatcher(storage=MemoryStorage())
@@ -65,12 +71,18 @@ async def main() -> None:
 
     store = SecureFileStore()
     purge_task = asyncio.create_task(_purge_loop(store))
+    dispatch_task = asyncio.create_task(dispatch_loop())
 
     logger.info("bot_starting")
     try:
         await dp.start_polling(bot)
     finally:
-        purge_task.cancel()
+        for task in (purge_task, dispatch_task):
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
+        await close_arq_pool()
+        await engine.dispose()
         await bot.session.close()
 
 
