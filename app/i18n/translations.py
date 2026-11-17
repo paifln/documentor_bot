@@ -815,6 +815,11 @@ MESSAGES.update(
 
 
 MESSAGES.update({
+    "rule.heading.top_level_format": {
+        "ru": "Напечатайте заголовок прописными полужирными буквами с абзацного отступа, без подчёркивания и точки в конце.",
+        "kk": "Тақырыпты абзац шегінісінен бас әріптермен және қалың қаріппен жазыңыз, астын сызбаңыз және соңына нүкте қоймаңыз.",
+        "en": "Use an indented, bold uppercase heading without underlining or a final period.",
+    },
     "section.content_table": {"ru": "Содержание", "kk": "Мазмұны", "en": "Table of contents"},
     "ai.reason.budget": {"ru": "Достигнут лимит объёма проверки текста.", "kk": "Мәтінді тексеру көлемінің шегіне жетті.", "en": "The text review budget was reached."},
     "ai.reason.timeout": {"ru": "Сервис не успел завершить проверку текста.", "kk": "Мәтінді тексеру уақытында аяқталмады.", "en": "Text review reached its time limit."},

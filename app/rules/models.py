@@ -51,6 +51,7 @@ class HeadingsRule(BaseModel):
     require_numbering: bool = True
     max_level: int = Field(default=3, ge=1, le=9)
     require_page_break_before_top_level: bool = False
+    require_top_level_heading_format: bool = False
 
 
 class StructureRule(BaseModel):
@@ -115,14 +116,14 @@ class ScoringPolicy(BaseModel):
 
 
 class RuleProvenance(BaseModel):
-    status: Literal["unverified", "department_verified"] = "unverified"
+    status: Literal["unverified", "department_verified", "university_verified"] = "unverified"
     scope: str = ""
     sources: list[str] = Field(default_factory=list)
     reviewed_on: str = ""
 
     @model_validator(mode="after")
     def verified_requires_evidence(self):
-        if self.status == "department_verified" and not (
+        if self.status != "unverified" and not (
             self.scope.strip() and self.sources and self.reviewed_on.strip()
         ):
             raise ValueError("Verified presets require scope, sources and review date")

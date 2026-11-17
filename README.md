@@ -2,7 +2,7 @@
 
 Documentor is a Telegram bot for reviewing student papers in DOCX format. It checks formatting and structure, analyzes language, academic style, and content, and produces a PDF report with actionable recommendations.
 
-The project is designed for universities in Kazakhstan. It includes provisional presets for coursework, graduation theses, essays, and internship reports at Makhambet Utemisov West Kazakhstan University. The interface and reports support Russian, Kazakh, and English.
+The project is designed for universities in Kazakhstan. It includes a graduation thesis preset based on `diplom-ru26.pdf` from Makhambet Utemisov West Kazakhstan University, plus provisional presets for coursework, essays, and internship reports. The interface and reports support Russian, Kazakh, and English.
 
 ## Features
 
